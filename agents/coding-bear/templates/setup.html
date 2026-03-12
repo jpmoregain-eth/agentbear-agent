@@ -1,0 +1,256 @@
+{% extends "base.html" %}
+
+{% block content %}
+
+{% if step == 1 %}
+<!-- Step 1: Welcome -->
+<div class="welcome-content">
+    <div class="welcome-icon">🐻</div>
+    <h2 class="welcome-title">Welcome to Coding Bear!</h2>
+    <p class="welcome-description">
+        Your AI coding assistant that helps with code review, debugging, refactoring, and more.
+        Let's get you set up in just a few steps.
+    </p>
+    
+    <div class="welcome-features">
+        <h3>What you'll need:</h3>
+        <ul>
+            <li>API key from Claude (Anthropic) or OpenAI</li>
+            <li>Optional: Telegram bot token (for chat interface)</li>
+            <li>Optional: GitHub token (for PR reviews)</li>
+        </ul>
+    </div>
+    
+    <form method="POST">
+        <div class="button-group" style="justify-content: flex-end;">
+            <button type="submit" class="btn btn-primary">
+                Get Started →
+            </button>
+        </div>
+    </form>
+</div>
+
+{% elif step == 2 %}
+<!-- Step 2: API Keys -->
+<h2 class="card-title">API Configuration</h2>
+<p class="card-description">Choose your AI model provider and enter your API key.</p>
+
+<form method="POST" id="api-form">
+    <div class="form-group">
+        <label>Model Provider</label>
+        <select name="provider" id="provider" required>
+            <option value="anthropic" {% if progress.get('step_2', {}).get('provider') == 'anthropic' %}selected{% endif %}>
+                Anthropic (Claude) - Recommended
+            </option>
+            <option value="openai" {% if progress.get('step_2', {}).get('provider') == 'openai' %}selected{% endif %}>
+                OpenAI (GPT-4)
+            </option>
+        </select>
+        <p class="help-text">Claude is recommended for coding tasks</p>
+    </div>
+    
+    <div class="form-group">
+        <label>Model</label>
+        <select name="model_name" id="model_name">
+            <option value="claude-3-5-sonnet-20241022" 
+                {% if progress.get('step_2', {}).get('model_name', 'claude-3-5-sonnet-20241022') == 'claude-3-5-sonnet-20241022' %}selected{% endif %}>
+                Claude 3.5 Sonnet (Recommended)
+            </option>
+            <option value="claude-3-opus-20240229"
+                {% if progress.get('step_2', {}).get('model_name') == 'claude-3-opus-20240229' %}selected{% endif %}>
+                Claude 3 Opus (Most powerful)
+            </option>
+            <option value="gpt-4o"
+                {% if progress.get('step_2', {}).get('model_name') == 'gpt-4o' %}selected{% endif %}>
+                GPT-4o
+            </option>
+        </select>
+    </div>
+    
+    <div class="form-group" id="anthropic-key-group">
+        <label>Anthropic API Key</label>
+        <input type="password" 
+               name="anthropic_key" 
+               id="anthropic_key"
+               placeholder="sk-ant-..."
+               value="{{ progress.get('step_2', {}).get('anthropic_key', '') }}"
+               onblur="validateApiKey('anthropic', this.value)">
+        <p class="help-text">
+            Get your key from <a href="https://console.anthropic.com" target="_blank" style="color: #6366f1;">console.anthropic.com</a>
+        </p>
+        <div id="validation-status" class="validation-status" style="display: none;"></div>
+    </div>
+    
+    <div class="form-group" id="openai-key-group" style="display: none;">
+        <label>OpenAI API Key</label>
+        <input type="password" 
+               name="openai_key" 
+               id="openai_key"
+               placeholder="sk-..."
+               value="{{ progress.get('step_2', {}).get('openai_key', '') }}"
+               onblur="validateApiKey('openai', this.value)">
+        <p class="help-text">
+            Get your key from <a href="https://platform.openai.com" target="_blank" style="color: #6366f1;">platform.openai.com</a>
+        </p>
+    </div>
+    
+    
+    <div class="button-group">
+        <a href="/setup/1" class="btn btn-secondary">← Back</a>
+        <button type="submit" class="btn btn-primary">Continue →</button>
+    </div>
+</form>
+
+<script>
+    // Toggle between Anthropic and OpenAI fields
+    document.getElementById('provider').addEventListener('change', function() {
+        const anthropicGroup = document.getElementById('anthropic-key-group');
+        const openaiGroup = document.getElementById('openai-key-group');
+        
+        if (this.value === 'anthropic') {
+            anthropicGroup.style.display = 'block';
+            openaiGroup.style.display = 'none';
+        } else {
+            anthropicGroup.style.display = 'none';
+            openaiGroup.style.display = 'block';
+        }
+    });
+    
+    // Trigger on load
+    document.getElementById('provider').dispatchEvent(new Event('change'));</script>
+
+{% elif step == 3 %}
+<!-- Step 3: Features -->
+<h2 class="card-title">Enable Features</h2>
+<p class="card-description">Choose which features you want to enable.</p>
+
+<form method="POST">
+    
+    <!-- Telegram -->
+    <label class="checkbox-group">
+        <input type="checkbox" 
+               name="enable_telegram" 
+               {% if progress.get('step_3', {}).get('enable_telegram') == 'on' %}checked{% endif %}>
+        <div>
+            <div class="checkbox-label">💬 Telegram Bot</div>
+            <div class="checkbox-description">Chat with your coding assistant on Telegram</div>
+        </div>
+    </label>
+    
+    <div class="form-group" id="telegram-token-group">
+        <label>Telegram Bot Token</label>
+        <input type="password" 
+               name="telegram_token"
+               placeholder="123456789:ABCdefGHIjkl..."
+               value="{{ progress.get('step_3', {}).get('telegram_token', '') }}">
+        <p class="help-text">
+            Get token from <a href="https://t.me/BotFather" target="_blank" style="color: #6366f1;">@BotFather</a>
+        </p>
+    </div>
+    
+    
+    <!-- GitHub -->
+    <label class="checkbox-group">
+        <input type="checkbox" 
+               name="enable_github"
+               {% if progress.get('step_3', {}).get('enable_github') == 'on' %}checked{% endif %}>
+        <div>
+            <div class="checkbox-label">🐙 GitHub Integration</div>
+            <div class="checkbox-description">Review PRs and analyze repositories</div>
+        </div>
+    </label>
+    
+    <div class="form-group" id="github-token-group">
+        <label>GitHub Token</label>
+        <input type="password" 
+               name="github_token"
+               placeholder="ghp_..."
+               value="{{ progress.get('step_3', {}).get('github_token', '') }}">
+        <p class="help-text">
+            Create token at <a href="https://github.com/settings/tokens" target="_blank" style="color: #6366f1;">GitHub Settings</a>
+        </p>
+    </div>
+    
+    
+    <!-- Memory -->
+    <label class="checkbox-group">
+        <input type="checkbox" 
+               name="enable_memory" 
+               checked>
+        <div>
+            <div class="checkbox-label">🧠 Memory & Learning</div>
+            <div class="checkbox-description">Remember code patterns and analysis history</div>
+        </div>
+    </label>
+    
+    
+    <div class="button-group">
+        <a href="/setup/2" class="btn btn-secondary">← Back</a>
+        <button type="submit" class="btn btn-primary">Continue →</button>
+    </div>
+</form>
+
+<script>
+    // Toggle token fields
+    document.querySelector('input[name="enable_telegram"]').addEventListener('change', function() {
+        document.getElementById('telegram-token-group').style.display = this.checked ? 'block' : 'none';
+    });
+    
+    document.querySelector('input[name="enable_github"]').addEventListener('change', function() {
+        document.getElementById('github-token-group').style.display = this.checked ? 'block' : 'none';
+    });
+    
+    // Initial state
+    document.getElementById('telegram-token-group').style.display = 
+        document.querySelector('input[name="enable_telegram"]').checked ? 'block' : 'none';
+    document.getElementById('github-token-group').style.display = 
+        document.querySelector('input[name="enable_github"]').checked ? 'block' : 'none';</script>
+
+{% elif step == 4 %}
+<!-- Step 4: Complete -->
+<div class="welcome-content">
+    <div class="welcome-icon">🎉</div>
+    <h2 class="welcome-title">Ready to Launch!</h2>
+    <p class="welcome-description">
+        Your Coding Bear agent is configured and ready to help you code.
+    </p>
+    
+    <div class="feature-grid">
+        <div class="feature-card">
+            <div class="feature-icon">🔍</div>
+            <div class="feature-title">Code Review</div>
+            <div class="feature-description">Analyze code for bugs and improvements</div>
+        </div>
+        
+        <div class="feature-card">
+            <div class="feature-icon">🐛</div>
+            <div class="feature-title">Debugging</div>
+            <div class="feature-description">Diagnose and fix errors</div>
+        </div>
+        
+        <div class="feature-card">
+            <div class="feature-icon">♻️</div>
+            <div class="feature-title">Refactoring</div>
+            <div class="feature-description">Improve code quality</div>
+        </div>
+        
+        <div class="feature-card">
+            <div class="feature-icon">🧪</div>
+            <div class="feature-title">Testing</div>
+            <div class="feature-description">Generate unit tests</div>
+        </div>
+    </div>
+    
+    
+    <form method="POST" style="margin-top: 2rem;">
+        <div class="button-group" style="justify-content: center;">
+            <button type="submit" class="btn btn-primary" style="font-size: 1.1rem; padding: 1rem 2rem;">
+                🚀 Launch Coding Bear
+            </button>
+        </div>
+    </form>
+</div>
+
+{% endif %}
+
+{% endblock %}

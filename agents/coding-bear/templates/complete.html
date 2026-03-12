@@ -1,0 +1,34 @@
+{% extends "base.html" %}
+
+{% block content %}
+
+<div class="welcome-content">
+    <div class="welcome-icon">✅</div>
+    <h2 class="welcome-title">Setup Complete!</h2>
+    
+    <p class="welcome-description">
+        Your Coding Bear agent is ready to go!
+    </p>
+    
+    
+    <div class="welcome-features">
+        <h3>What's Next?</h3>
+        <ul>
+            <li>Run: <code style="background: rgba(99,102,241,0.2); padding: 0.2rem 0.5rem; border-radius: 0.25rem;">python coding_agent.py</code></li>
+            <li>Start coding with your AI assistant!</li>
+            <li>Chat on Telegram (if enabled)</li>
+        </ul>
+    </div>
+    
+    
+    <div style="margin-top: 2rem;">
+        <a href="/" class="btn btn-primary">Start Over</a>
+        <a href="https://github.com/jpmoregain-eth/agentbear-agent/tree/main/agents/coding-bear" 
+           class="btn btn-secondary" 
+           target="_blank">
+            View Documentation →
+        </a>
+    </div>
+</div>
+
+{% endblock %}
