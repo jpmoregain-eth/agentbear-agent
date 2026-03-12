@@ -1,0 +1,32 @@
+# Coding Bear Agent Configuration
+# Copy this file to bond_config.yaml and fill in your API keys
+
+agent:
+  name: "coding-bear"
+  version: "0.1.0"
+  log_level: "INFO"
+  max_file_size: 100000
+  max_context_lines: 100
+
+model:
+  provider: "anthropic"  # or "openai"
+  name: "claude-3-5-sonnet-20241022"
+  anthropic_api_key: "YOUR_ANTHROPIC_API_KEY_HERE"
+  openai_api_key: "YOUR_OPENAI_API_KEY_HERE"
+  max_tokens: 4000
+  temperature: 0.3
+
+telegram:
+  enabled: false
+  bot_token: "YOUR_TELEGRAM_BOT_TOKEN_HERE"
+  allowed_users: []  # List of allowed Telegram user IDs (empty = allow all)
+
+github:
+  enabled: false
+  token: "YOUR_GITHUB_TOKEN_HERE"
+  webhook_secret: ""  # For GitHub webhook validation
+
+memory:
+  enabled: true
+  db_path: "coding_memory.db"
+  max_history: 1000
