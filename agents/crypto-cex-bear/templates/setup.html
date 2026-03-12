@@ -3,727 +3,1401 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>AgentBear Setup</title>
+    <title>AgentBear — Setup</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Mono:wght@400;500&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
     <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
+        :root {
+            --bg: #0a0a0f;
+            --surface: #111118;
+            --surface2: #18181f;
+            --border: #2a2a35;
+            --border-active: #5b5bd6;
+            --accent: #5b5bd6;
+            --accent2: #00d4aa;
+            --danger: #ff4d6d;
+            --success: #00d4aa;
+            --text: #f0f0f8;
+            --text2: #8888aa;
+            --text3: #55556a;
         }
 
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+
         body {
-            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            font-family: 'DM Sans', sans-serif;
+            background: var(--bg);
+            color: var(--text);
             min-height: 100vh;
             display: flex;
             align-items: center;
             justify-content: center;
             padding: 20px;
+            position: relative;
+            overflow-x: hidden;
+        }
+
+        /* Background grid */
+        body::before {
+            content: '';
+            position: fixed;
+            inset: 0;
+            background-image:
+                linear-gradient(rgba(91,91,214,0.04) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(91,91,214,0.04) 1px, transparent 1px);
+            background-size: 40px 40px;
+            pointer-events: none;
+        }
+
+        /* Glow orb */
+        body::after {
+            content: '';
+            position: fixed;
+            top: -200px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 600px;
+            height: 600px;
+            background: radial-gradient(circle, rgba(91,91,214,0.12) 0%, transparent 70%);
+            pointer-events: none;
         }
 
         .container {
-            background: white;
-            border-radius: 12px;
-            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
             width: 100%;
-            max-width: 550px;
-            padding: 40px;
+            max-width: 560px;
+            position: relative;
+            z-index: 1;
         }
 
+        /* Header */
         .header {
             text-align: center;
-            margin-bottom: 30px;
+            margin-bottom: 32px;
+        }
+
+        .bear-icon {
+            font-size: 48px;
+            display: block;
+            margin-bottom: 12px;
+            filter: drop-shadow(0 0 20px rgba(91,91,214,0.5));
         }
 
         .header h1 {
-            color: #333;
+            font-family: 'Syne', sans-serif;
             font-size: 28px;
-            margin-bottom: 8px;
+            font-weight: 800;
+            letter-spacing: -0.5px;
+            color: var(--text);
+        }
+
+        .header h1 span {
+            color: var(--accent);
         }
 
         .header p {
-            color: #666;
+            color: var(--text2);
             font-size: 14px;
+            margin-top: 4px;
+            font-weight: 300;
         }
 
-        .steps {
+        /* Progress bar */
+        .progress-bar {
             display: flex;
-            justify-content: space-between;
-            margin-bottom: 30px;
-            gap: 10px;
+            align-items: center;
+            margin-bottom: 28px;
+            gap: 0;
         }
 
-        .step {
+        .progress-step {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
             flex: 1;
-            text-align: center;
-            padding: 10px;
-            border-radius: 6px;
-            background: #f0f0f0;
-            color: #999;
-            font-size: 12px;
-            font-weight: 600;
-            cursor: pointer;
-            transition: all 0.2s;
+            position: relative;
         }
 
-        .step.active {
-            background: #667eea;
+        .progress-step:not(:last-child)::after {
+            content: '';
+            position: absolute;
+            top: 14px;
+            left: 50%;
+            width: 100%;
+            height: 2px;
+            background: var(--border);
+            transition: background 0.4s ease;
+        }
+
+        .progress-step.completed:not(:last-child)::after {
+            background: var(--accent);
+        }
+
+        .progress-dot {
+            width: 28px;
+            height: 28px;
+            border-radius: 50%;
+            border: 2px solid var(--border);
+            background: var(--surface);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-family: 'DM Mono', monospace;
+            font-size: 11px;
+            color: var(--text3);
+            transition: all 0.3s ease;
+            position: relative;
+            z-index: 1;
+        }
+
+        .progress-step.active .progress-dot {
+            border-color: var(--accent);
+            background: var(--accent);
             color: white;
+            box-shadow: 0 0 16px rgba(91,91,214,0.5);
         }
 
-        .step.completed {
-            background: #28a745;
-            color: white;
+        .progress-step.completed .progress-dot {
+            border-color: var(--accent2);
+            background: var(--accent2);
+            color: var(--bg);
+            font-size: 13px;
         }
 
-        .step-content {
-            display: none;
+        .progress-label {
+            font-size: 9px;
+            color: var(--text3);
+            margin-top: 4px;
+            font-weight: 500;
+            letter-spacing: 0.5px;
+            text-transform: uppercase;
         }
 
-        .step-content.active {
-            display: block;
+        .progress-step.active .progress-label { color: var(--accent); }
+        .progress-step.completed .progress-label { color: var(--accent2); }
+
+        /* Card */
+        .card {
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: 16px;
+            padding: 32px;
+            margin-bottom: 16px;
         }
 
-        .step-title {
-            font-size: 18px;
-            font-weight: 600;
-            color: #333;
-            margin-bottom: 20px;
+        .step-content { display: none; }
+        .step-content.active { display: block; }
+
+        .step-header {
+            margin-bottom: 24px;
         }
 
+        .step-header h2 {
+            font-family: 'Syne', sans-serif;
+            font-size: 20px;
+            font-weight: 700;
+            color: var(--text);
+        }
+
+        .step-header p {
+            color: var(--text2);
+            font-size: 13px;
+            margin-top: 4px;
+        }
+
+        /* Form elements */
         .form-group {
             margin-bottom: 20px;
         }
 
         label {
             display: block;
-            color: #333;
+            font-size: 13px;
             font-weight: 500;
-            margin-bottom: 6px;
-            font-size: 14px;
+            color: var(--text2);
+            margin-bottom: 8px;
+            letter-spacing: 0.3px;
         }
 
         input[type="text"],
-        input[type="password"],
-        select {
+        input[type="password"] {
             width: 100%;
-            padding: 10px 12px;
-            border: 1px solid #ddd;
-            border-radius: 6px;
+            padding: 12px 14px;
+            background: var(--surface2);
+            border: 1px solid var(--border);
+            border-radius: 8px;
             font-size: 14px;
-            transition: border-color 0.2s;
+            color: var(--text);
+            font-family: 'DM Sans', sans-serif;
+            transition: all 0.2s;
+            outline: none;
         }
 
         input[type="text"]:focus,
-        input[type="password"]:focus,
-        select:focus {
-            outline: none;
-            border-color: #667eea;
-            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+        input[type="password"]:focus {
+            border-color: var(--accent);
+            box-shadow: 0 0 0 3px rgba(91,91,214,0.15);
         }
+
+        input::placeholder { color: var(--text3); }
 
         .help-text {
-            color: #999;
-            font-size: 12px;
-            margin-top: 4px;
+            font-size: 11px;
+            color: var(--text3);
+            margin-top: 6px;
         }
 
-        .checkbox-group {
-            display: flex;
-            align-items: center;
-            gap: 8px;
+        .help-text a {
+            color: var(--accent);
+            text-decoration: none;
         }
 
-        input[type="checkbox"] {
-            width: 18px;
-            height: 18px;
-            cursor: pointer;
-        }
-
-        .checkbox-group label {
-            margin: 0;
-            cursor: pointer;
-            flex: 1;
-        }
-
-        .model-selection {
+        /* Model cards */
+        .model-grid {
             display: grid;
             grid-template-columns: 1fr 1fr;
             gap: 10px;
             margin-bottom: 20px;
         }
 
-        .model-option {
-            padding: 15px;
-            border: 2px solid #ddd;
-            border-radius: 6px;
+        .model-card {
+            background: var(--surface2);
+            border: 2px solid var(--border);
+            border-radius: 10px;
+            padding: 14px;
             cursor: pointer;
-            text-align: center;
             transition: all 0.2s;
+            position: relative;
         }
 
-        .model-option:hover {
-            border-color: #667eea;
-            background: #f8f9fa;
+        .model-card:hover { border-color: var(--accent); }
+
+        .model-card.selected {
+            border-color: var(--accent);
+            background: rgba(91,91,214,0.1);
         }
 
-        .model-option.selected {
-            border-color: #667eea;
-            background: #667eea;
-            color: white;
-        }
+        .model-card input[type="checkbox"] { display: none; }
 
-        .model-option input[type="radio"] {
-            display: none;
+        .model-card-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 6px;
         }
 
         .model-name {
-            font-weight: 600;
+            font-family: 'Syne', sans-serif;
             font-size: 14px;
+            font-weight: 700;
+            color: var(--text);
         }
 
-        .api-field {
-            display: none;
+        .model-check {
+            width: 18px;
+            height: 18px;
+            border: 2px solid var(--border);
+            border-radius: 4px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.2s;
+            font-size: 11px;
         }
 
-        .api-field.active {
+        .model-card.selected .model-check {
+            background: var(--accent);
+            border-color: var(--accent);
+        }
+
+        .model-provider {
+            font-size: 11px;
+            color: var(--text3);
+            margin-bottom: 6px;
+        }
+
+        .model-tags {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 4px;
+        }
+
+        .tag {
+            font-size: 9px;
+            padding: 2px 6px;
+            border-radius: 4px;
+            font-family: 'DM Mono', monospace;
+            letter-spacing: 0.3px;
+        }
+
+        .tag-blue { background: rgba(91,91,214,0.2); color: #9999ff; }
+        .tag-green { background: rgba(0,212,170,0.15); color: var(--accent2); }
+        .tag-orange { background: rgba(255,165,0,0.15); color: #ffaa44; }
+
+        .recommended-badge {
+            position: absolute;
+            top: -8px;
+            right: 10px;
+            background: var(--accent);
+            color: white;
+            font-size: 9px;
+            padding: 2px 8px;
+            border-radius: 4px;
+            font-family: 'DM Mono', monospace;
+            letter-spacing: 0.5px;
+            text-transform: uppercase;
+        }
+
+        /* Default model selector */
+        .default-selector {
+            background: var(--surface2);
+            border: 1px solid var(--border);
+            border-radius: 10px;
+            padding: 14px 16px;
+            margin-top: 4px;
+        }
+
+        .default-selector label {
+            color: var(--text2);
+            font-size: 12px;
+            margin-bottom: 10px;
+        }
+
+        .default-options {
+            display: flex;
+            gap: 8px;
+            flex-wrap: wrap;
+        }
+
+        .default-option {
+            padding: 6px 14px;
+            border-radius: 6px;
+            border: 1px solid var(--border);
+            background: var(--surface);
+            color: var(--text2);
+            font-size: 12px;
+            cursor: pointer;
+            transition: all 0.2s;
+            font-family: 'DM Sans', sans-serif;
+        }
+
+        .default-option:hover { border-color: var(--accent); color: var(--text); }
+        .default-option.active { background: var(--accent); border-color: var(--accent); color: white; }
+        .default-option[disabled] { opacity: 0.3; cursor: not-allowed; }
+
+        /* API key sections */
+        .api-section {
+            background: var(--surface2);
+            border: 1px solid var(--border);
+            border-radius: 10px;
+            padding: 16px;
+            margin-bottom: 12px;
+        }
+
+        .api-section-header {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            margin-bottom: 14px;
+        }
+
+        .api-section-name {
+            font-family: 'Syne', sans-serif;
+            font-size: 14px;
+            font-weight: 700;
+        }
+
+        .api-section-provider {
+            font-size: 11px;
+            color: var(--text3);
+        }
+
+        /* Test button + status */
+        .input-row {
+            display: flex;
+            gap: 8px;
+            align-items: flex-start;
+        }
+
+        .input-row input { flex: 1; }
+
+        .test-btn {
+            padding: 12px 14px;
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            color: var(--text2);
+            font-size: 12px;
+            font-family: 'DM Mono', monospace;
+            cursor: pointer;
+            white-space: nowrap;
+            transition: all 0.2s;
+            flex-shrink: 0;
+        }
+
+        .test-btn:hover { border-color: var(--accent); color: var(--accent); }
+
+        .test-btn.testing {
+            color: var(--text3);
+            cursor: wait;
+        }
+
+        .validation-row {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            margin-top: 8px;
+            min-height: 18px;
+        }
+
+        .validation-dot {
+            width: 6px;
+            height: 6px;
+            border-radius: 50%;
+            background: var(--border);
+            transition: all 0.3s;
+        }
+
+        .validation-dot.success { background: var(--success); box-shadow: 0 0 6px var(--success); }
+        .validation-dot.error { background: var(--danger); box-shadow: 0 0 6px var(--danger); }
+        .validation-dot.testing { background: var(--accent); animation: pulse 1s infinite; }
+
+        .validation-text {
+            font-size: 11px;
+            color: var(--text3);
+            font-family: 'DM Mono', monospace;
+        }
+
+        .validation-text.success { color: var(--success); }
+        .validation-text.error { color: var(--danger); }
+
+        /* Scan frequency */
+        .freq-grid {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 8px;
+        }
+
+        .freq-option {
+            background: var(--surface2);
+            border: 2px solid var(--border);
+            border-radius: 10px;
+            padding: 16px 8px;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .freq-option:hover { border-color: var(--accent); }
+
+        .freq-option.selected {
+            border-color: var(--accent2);
+            background: rgba(0,212,170,0.08);
+        }
+
+        .freq-option input { display: none; }
+
+        .freq-value {
+            font-family: 'Syne', sans-serif;
+            font-size: 20px;
+            font-weight: 800;
+            color: var(--text);
             display: block;
         }
 
-        .test-button {
-            display: inline-block;
-            padding: 6px 12px;
-            margin-top: 8px;
-            background: #667eea;
-            color: white;
-            border: none;
-            border-radius: 4px;
-            font-size: 12px;
+        .freq-unit {
+            font-size: 10px;
+            color: var(--text3);
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            display: block;
+            margin-top: 2px;
+        }
+
+        .freq-option.selected .freq-value { color: var(--accent2); }
+
+        /* Checkbox toggle */
+        .toggle-row {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 14px 16px;
+            background: var(--surface2);
+            border: 1px solid var(--border);
+            border-radius: 10px;
             cursor: pointer;
+        }
+
+        .toggle-label {
+            font-size: 13px;
+            color: var(--text);
+        }
+
+        .toggle-sub {
+            font-size: 11px;
+            color: var(--text3);
+            margin-top: 2px;
+        }
+
+        .toggle-switch {
+            width: 36px;
+            height: 20px;
+            background: var(--border);
+            border-radius: 10px;
+            position: relative;
+            transition: all 0.2s;
+            flex-shrink: 0;
+        }
+
+        .toggle-switch::after {
+            content: '';
+            position: absolute;
+            top: 3px;
+            left: 3px;
+            width: 14px;
+            height: 14px;
+            background: white;
+            border-radius: 50%;
             transition: all 0.2s;
         }
 
-        .test-button:hover {
-            background: #764ba2;
+        .toggle-switch.on {
+            background: var(--accent2);
         }
 
-        .test-button:disabled {
-            opacity: 0.6;
-            cursor: not-allowed;
+        .toggle-switch.on::after {
+            left: 19px;
         }
 
-        .test-status {
-            display: inline-block;
-            margin-left: 8px;
-            font-size: 12px;
-            margin-top: 8px;
+        /* Review */
+        .review-group {
+            margin-bottom: 20px;
         }
 
-        .test-status.success {
-            color: #28a745;
+        .review-group-title {
+            font-size: 10px;
+            color: var(--text3);
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            font-family: 'DM Mono', monospace;
+            margin-bottom: 8px;
         }
 
-        .test-status.error {
-            color: #dc3545;
+        .review-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 10px 14px;
+            background: var(--surface2);
+            border-radius: 8px;
+            margin-bottom: 4px;
         }
 
-        .button-group {
+        .review-key {
+            font-size: 13px;
+            color: var(--text2);
+        }
+
+        .review-val {
+            font-size: 13px;
+            color: var(--text);
+            font-family: 'DM Mono', monospace;
+        }
+
+        .review-val.ok { color: var(--success); }
+        .review-val.missing { color: var(--danger); }
+
+        /* Navigation */
+        .nav {
             display: flex;
             gap: 10px;
-            margin-top: 30px;
         }
 
-        button {
+        .btn {
             flex: 1;
-            padding: 12px 20px;
+            padding: 14px;
             border: none;
-            border-radius: 6px;
+            border-radius: 10px;
             font-size: 14px;
             font-weight: 600;
+            font-family: 'DM Sans', sans-serif;
             cursor: pointer;
             transition: all 0.2s;
         }
 
-        .btn-primary {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        .btn-back {
+            background: var(--surface2);
+            border: 1px solid var(--border);
+            color: var(--text2);
+            flex: 0 0 auto;
+            padding: 14px 20px;
+        }
+
+        .btn-back:hover { border-color: var(--border-active); color: var(--text); }
+
+        .btn-next {
+            background: var(--accent);
             color: white;
         }
 
-        .btn-primary:hover:not(:disabled) {
-            transform: translateY(-2px);
-            box-shadow: 0 10px 20px rgba(102, 126, 234, 0.3);
+        .btn-next:hover:not(:disabled) {
+            background: #6e6ef0;
+            transform: translateY(-1px);
+            box-shadow: 0 8px 20px rgba(91,91,214,0.3);
         }
 
-        .btn-secondary {
-            background: #ddd;
-            color: #333;
-        }
-
-        .btn-secondary:hover:not(:disabled) {
-            background: #bbb;
-        }
-
-        button:disabled {
-            opacity: 0.6;
+        .btn-next:disabled {
+            opacity: 0.5;
             cursor: not-allowed;
             transform: none;
         }
 
+        .btn-launch {
+            background: linear-gradient(135deg, var(--accent2), #00a884);
+            color: var(--bg);
+            font-weight: 700;
+        }
+
+        .btn-launch:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 8px 20px rgba(0,212,170,0.3);
+        }
+
+        /* Alert */
         .alert {
-            padding: 12px 14px;
-            border-radius: 6px;
-            margin-bottom: 20px;
+            padding: 12px 16px;
+            border-radius: 8px;
+            font-size: 13px;
+            margin-bottom: 16px;
+            display: none;
+            font-family: 'DM Mono', monospace;
+        }
+
+        .alert-error { background: rgba(255,77,109,0.1); border: 1px solid rgba(255,77,109,0.3); color: var(--danger); }
+        .alert-success { background: rgba(0,212,170,0.1); border: 1px solid rgba(0,212,170,0.3); color: var(--success); }
+
+        /* Success screen */
+        .success-screen {
+            text-align: center;
+            padding: 20px 0;
+        }
+
+        .success-emoji {
+            font-size: 64px;
+            display: block;
+            margin-bottom: 16px;
+            animation: bounceIn 0.6s ease;
+        }
+
+        .success-screen h2 {
+            font-family: 'Syne', sans-serif;
+            font-size: 24px;
+            font-weight: 800;
+            margin-bottom: 8px;
+            color: var(--accent2);
+        }
+
+        .success-screen p {
+            color: var(--text2);
             font-size: 14px;
-            display: none;
+            margin-bottom: 24px;
         }
 
-        .alert-success {
-            background: #d4edda;
-            color: #155724;
-            border: 1px solid #c3e6cb;
+        .next-steps {
+            background: var(--surface2);
+            border: 1px solid var(--border);
+            border-radius: 10px;
+            padding: 16px;
+            text-align: left;
+            margin-bottom: 24px;
         }
 
-        .alert-error {
-            background: #f8d7da;
-            color: #721c24;
-            border: 1px solid #f5c6cb;
+        .next-steps p {
+            font-size: 12px;
+            color: var(--text3);
+            margin-bottom: 10px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
         }
 
-        .alert-info {
-            background: #d1ecf1;
-            color: #0c5460;
-            border: 1px solid #bee5eb;
+        .next-step-item {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 8px 0;
+            border-bottom: 1px solid var(--border);
+            font-size: 13px;
         }
 
-        .spinner {
-            display: none;
-            width: 14px;
-            height: 14px;
-            border: 2px solid #f3f3f3;
-            border-top: 2px solid currentColor;
+        .next-step-item:last-child { border-bottom: none; }
+
+        .step-num {
+            width: 20px;
+            height: 20px;
             border-radius: 50%;
-            animation: spin 0.8s linear infinite;
+            background: var(--accent);
+            color: white;
+            font-size: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-family: 'DM Mono', monospace;
+            flex-shrink: 0;
+        }
+
+        .command-block {
+            background: var(--surface2);
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            padding: 12px 16px;
+            font-family: 'DM Mono', monospace;
+            font-size: 13px;
+            color: var(--accent2);
+            text-align: left;
+            margin-bottom: 16px;
+        }
+
+        @keyframes bounceIn {
+            0% { transform: scale(0.5); opacity: 0; }
+            70% { transform: scale(1.1); }
+            100% { transform: scale(1); opacity: 1; }
+        }
+
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.4; }
+        }
+
+        @keyframes fadeUp {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .step-content.active {
+            animation: fadeUp 0.3s ease;
+        }
+
+        /* Spinner */
+        .spinner {
+            width: 12px;
+            height: 12px;
+            border: 2px solid var(--border);
+            border-top-color: var(--accent);
+            border-radius: 50%;
+            animation: spin 0.7s linear infinite;
+            display: inline-block;
         }
 
         @keyframes spin {
-            0% { transform: rotate(0deg); }
-            100% { transform: rotate(360deg); }
+            to { transform: rotate(360deg); }
         }
 
-        .review-item {
-            padding: 12px;
-            background: #f8f9fa;
-            border-radius: 6px;
-            margin-bottom: 10px;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
+        /* Info note */
+        .info-note {
+            background: rgba(91,91,214,0.08);
+            border: 1px solid rgba(91,91,214,0.2);
+            border-radius: 8px;
+            padding: 12px 14px;
+            font-size: 12px;
+            color: var(--text2);
+            margin-bottom: 16px;
         }
 
-        .review-label {
-            font-weight: 500;
-            color: #666;
-        }
-
-        .review-value {
-            color: #333;
-        }
+        .info-note strong { color: var(--accent); }
     </style>
 </head>
 <body>
     <div class="container">
+
+        <!-- Header -->
         <div class="header">
-            <h1>🐻 AgentBear Setup</h1>
-            <p>Configure your crypto trading agent</p>
+            <span class="bear-icon">🐻</span>
+            <h1>Agent<span>Bear</span> Setup</h1>
+            <p>Get your crypto-cex-bear running in 5 minutes</p>
         </div>
 
-        <div id="alert" class="alert"></div>
+        <!-- Alert -->
+        <div class="alert" id="alert"></div>
 
-        <div class="steps">
-            <div class="step active" data-step="1">1. Agent</div>
-            <div class="step" data-step="2">2. Model</div>
-            <div class="step" data-step="3">3. API Keys</div>
-            <div class="step" data-step="4">4. Exchange</div>
-            <div class="step" data-step="5">5. Telegram</div>
-            <div class="step" data-step="6">6. Review</div>
-        </div>
+        <!-- Progress -->
+        <div class="progress-bar" id="progressBar"></div>
 
-        <form id="setupForm">
-            <!-- Step 1: Agent Settings -->
+        <!-- Card -->
+        <div class="card">
+
+            <!-- Step 1: Identity -->
             <div class="step-content active" data-step="1">
-                <div class="step-title">Agent Settings</div>
-                
-                <div class="form-group">
-                    <label for="agent_name">Agent Name</label>
-                    <input type="text" id="agent_name" name="agent_name" value="Sentinel" required>
-                    <div class="help-text">Give your agent a unique identity</div>
+                <div class="step-header">
+                    <h2>Who are you?</h2>
+                    <p>Let's personalise your bear</p>
                 </div>
 
                 <div class="form-group">
-                    <label for="user_name">Your Name</label>
-                    <input type="text" id="user_name" name="user_name" value="Derek" required>
-                    <div class="help-text">Your trading name or username</div>
+                    <label>Your name</label>
+                    <input type="text" id="user_name" placeholder="e.g. Derek" value="">
+                    <div class="help-text">How your bear will address you</div>
+                </div>
+
+                <div class="form-group">
+                    <label>Agent name</label>
+                    <input type="text" id="agent_name" placeholder="e.g. Sentinel" value="">
+                    <div class="help-text">Give your bear a unique identity</div>
                 </div>
             </div>
 
-            <!-- Step 2: Model Selection -->
+            <!-- Step 2: Model selection -->
             <div class="step-content" data-step="2">
-                <div class="step-title">Select AI Model</div>
-                <div class="help-text" style="margin-bottom: 20px;">Choose your preferred AI model for analysis</div>
+                <div class="step-header">
+                    <h2>Choose your models</h2>
+                    <p>Select one or more — you'll set a default below</p>
+                </div>
 
-                <div class="model-selection">
-                    <label class="model-option selected">
-                        <input type="radio" name="model" value="claude" checked>
-                        <div class="model-name">Claude</div>
-                        <div style="font-size: 11px; color: #666;">Anthropic</div>
+                <div class="model-grid">
+                    <label class="model-card" id="card-claude" onclick="toggleModel('claude')">
+                        <input type="checkbox" id="model-claude" value="claude">
+                        <div class="recommended-badge">★ recommended</div>
+                        <div class="model-card-header">
+                            <span class="model-name">Claude</span>
+                            <div class="model-check" id="check-claude"></div>
+                        </div>
+                        <div class="model-provider">Anthropic · Sonnet 3.5</div>
+                        <div class="model-tags">
+                            <span class="tag tag-blue">best reasoning</span>
+                            <span class="tag tag-green">$3/1M</span>
+                        </div>
                     </label>
-                    <label class="model-option">
-                        <input type="radio" name="model" value="openai">
-                        <div class="model-name">GPT-4o</div>
-                        <div style="font-size: 11px; color: #666;">OpenAI</div>
+
+                    <label class="model-card" id="card-openai" onclick="toggleModel('openai')">
+                        <input type="checkbox" id="model-openai" value="openai">
+                        <div class="model-card-header">
+                            <span class="model-name">GPT-4o</span>
+                            <div class="model-check" id="check-openai"></div>
+                        </div>
+                        <div class="model-provider">OpenAI · GPT-4o</div>
+                        <div class="model-tags">
+                            <span class="tag tag-blue">reliable</span>
+                            <span class="tag tag-green">$5/1M</span>
+                        </div>
                     </label>
-                    <label class="model-option">
-                        <input type="radio" name="model" value="kimi">
-                        <div class="model-name">Kimi</div>
-                        <div style="font-size: 11px; color: #666;">Moonshot AI</div>
+
+                    <label class="model-card" id="card-gemini" onclick="toggleModel('gemini')">
+                        <input type="checkbox" id="model-gemini" value="gemini">
+                        <div class="model-card-header">
+                            <span class="model-name">Gemini</span>
+                            <div class="model-check" id="check-gemini"></div>
+                        </div>
+                        <div class="model-provider">Google · Flash 2.0</div>
+                        <div class="model-tags">
+                            <span class="tag tag-orange">fastest</span>
+                            <span class="tag tag-green">$0.075/1M</span>
+                        </div>
                     </label>
-                    <label class="model-option">
-                        <input type="radio" name="model" value="google">
-                        <div class="model-name">Gemini</div>
-                        <div style="font-size: 11px; color: #666;">Google</div>
+
+                    <label class="model-card" id="card-kimi" onclick="toggleModel('kimi')">
+                        <input type="checkbox" id="model-kimi" value="kimi">
+                        <div class="model-card-header">
+                            <span class="model-name">Kimi</span>
+                            <div class="model-check" id="check-kimi"></div>
+                        </div>
+                        <div class="model-provider">Moonshot · v1-32k</div>
+                        <div class="model-tags">
+                            <span class="tag tag-blue">200k ctx</span>
+                            <span class="tag tag-orange">中文</span>
+                        </div>
                     </label>
+                </div>
+
+                <div class="default-selector" id="defaultSelector" style="display:none;">
+                    <label>Default model</label>
+                    <div class="default-options" id="defaultOptions"></div>
                 </div>
             </div>
 
             <!-- Step 3: API Keys -->
             <div class="step-content" data-step="3">
-                <div class="step-title">API Keys</div>
-                
-                <div class="api-field active" data-model="claude">
-                    <div class="form-group">
-                        <label for="claude_key">Claude API Key</label>
-                        <input type="password" id="claude_key" name="claude_key" placeholder="sk-ant-...">
-                        <div class="help-text">Get from console.anthropic.com</div>
-                        <button type="button" class="test-button" onclick="testApiKey('claude')">
-                            Test Key
-                        </button>
-                        <span class="test-status" id="claude-status"></span>
-                    </div>
+                <div class="step-header">
+                    <h2>API keys</h2>
+                    <p>Enter and validate keys for each selected model</p>
                 </div>
-
-                <div class="api-field" data-model="openai">
-                    <div class="form-group">
-                        <label for="openai_key">OpenAI API Key</label>
-                        <input type="password" id="openai_key" name="openai_key" placeholder="sk-...">
-                        <div class="help-text">Get from platform.openai.com/api-keys</div>
-                        <button type="button" class="test-button" onclick="testApiKey('openai')">
-                            Test Key
-                        </button>
-                        <span class="test-status" id="openai-status"></span>
-                    </div>
-                </div>
-
-                <div class="api-field" data-model="kimi">
-                    <div class="form-group">
-                        <label for="kimi_key">Kimi API Key</label>
-                        <input type="password" id="kimi_key" name="kimi_key" placeholder="...">
-                        <div class="help-text">Get from platform.moonshot.cn</div>
-                        <button type="button" class="test-button" onclick="testApiKey('kimi')">
-                            Test Key
-                        </button>
-                        <span class="test-status" id="kimi-status"></span>
-                    </div>
-                </div>
-
-                <div class="api-field" data-model="google">
-                    <div class="form-group">
-                        <label for="google_key">Google Gemini API Key</label>
-                        <input type="password" id="google_key" name="google_key" placeholder="...">
-                        <div class="help-text">Get from makersuite.google.com/app/apikey</div>
-                        <button type="button" class="test-button" onclick="testApiKey('google')">
-                            Test Key
-                        </button>
-                        <span class="test-status" id="google-status"></span>
-                    </div>
+                <div id="apiKeyFields">
+                    <!-- Dynamically rendered -->
                 </div>
             </div>
 
-            <!-- Step 4: Exchange -->
+            <!-- Step 4: Binance -->
             <div class="step-content" data-step="4">
-                <div class="step-title">Exchange Settings</div>
-
-                <div class="form-group">
-                    <label for="binance_key">Binance API Key</label>
-                    <input type="text" id="binance_key" name="binance_key" placeholder="Your Binance API key" required>
-                    <div class="help-text">Create at binance.com/account/api-management with "Read" permission</div>
-                    <button type="button" class="test-button" onclick="testApiKey('binance')">
-                        Test Key
-                    </button>
-                    <span class="test-status" id="binance-status"></span>
+                <div class="step-header">
+                    <h2>Connect Binance</h2>
+                    <p>Read-only API access — we never trade on your behalf</p>
                 </div>
 
                 <div class="form-group">
-                    <label for="binance_secret">Binance API Secret</label>
-                    <input type="password" id="binance_secret" name="binance_secret" placeholder="Your Binance API secret" required>
-                    <div class="help-text">Keep this secret and secure</div>
-                </div>
-
-                <div class="form-group">
-                    <div class="checkbox-group">
-                        <input type="checkbox" id="testnet" name="testnet">
-                        <label for="testnet">Use Binance Testnet (Recommended for first time)</label>
+                    <label>API Key</label>
+                    <div class="input-row">
+                        <input type="password" id="binance_key" placeholder="Your Binance API key">
+                        <button class="test-btn" onclick="testKey('binance')">Test</button>
                     </div>
-                    <div class="help-text">Testnet lets you trade with fake money to learn</div>
+                    <div class="validation-row">
+                        <div class="validation-dot" id="binance-dot"></div>
+                        <span class="validation-text" id="binance-text"></span>
+                    </div>
+                    <div class="help-text">Create at <a href="https://www.binance.com/en/account/api-management" target="_blank">binance.com/api-management</a> with "Read" permission only</div>
                 </div>
+
+                <div class="form-group">
+                    <label>API Secret</label>
+                    <input type="password" id="binance_secret" placeholder="Your Binance API secret">
+                    <div class="help-text">Never shared or stored remotely</div>
+                </div>
+
+                <div class="toggle-row" onclick="toggleTestnet()" style="margin-top: 8px;">
+                    <div>
+                        <div class="toggle-label">Use Testnet</div>
+                        <div class="toggle-sub">Recommended for first-time setup — uses simulated data</div>
+                    </div>
+                    <div class="toggle-switch" id="testnet-toggle"></div>
+                </div>
+                <input type="hidden" id="testnet" value="false">
             </div>
 
             <!-- Step 5: Telegram -->
             <div class="step-content" data-step="5">
-                <div class="step-title">Telegram Bot</div>
+                <div class="step-header">
+                    <h2>Connect Telegram</h2>
+                    <p>Your bear delivers alerts and analysis here</p>
+                </div>
 
-                <div class="form-group">
-                    <label for="telegram_token">Telegram Bot Token</label>
-                    <input type="password" id="telegram_token" name="telegram_token" placeholder="123456:ABC-DEF..." required>
-                    <div class="help-text">Get from @BotFather on Telegram with /newbot</div>
-                    <button type="button" class="test-button" onclick="testApiKey('telegram')">
-                        Test Token
-                    </button>
-                    <span class="test-status" id="telegram-status"></span>
+                <div class="info-note">
+                    <strong>Step 1:</strong> Open Telegram and message <strong>@BotFather</strong><br>
+                    Send <code>/newbot</code>, follow the steps, copy your bot token
                 </div>
 
                 <div class="form-group">
-                    <label for="db_path">Database Path</label>
-                    <input type="text" id="db_path" name="db_path" value="agentbear_memory.db" required>
-                    <div class="help-text">Local SQLite database for agent memory</div>
+                    <label>Bot token</label>
+                    <div class="input-row">
+                        <input type="password" id="telegram_token" placeholder="123456789:ABC-DEF...">
+                        <button class="test-btn" onclick="testKey('telegram')">Validate</button>
+                    </div>
+                    <div class="validation-row">
+                        <div class="validation-dot" id="telegram-dot"></div>
+                        <span class="validation-text" id="telegram-text"></span>
+                    </div>
                 </div>
             </div>
 
-            <!-- Step 6: Review -->
+            <!-- Step 6: Scan frequency -->
             <div class="step-content" data-step="6">
-                <div class="step-title">Review Configuration</div>
-                <div id="review-content"></div>
+                <div class="step-header">
+                    <h2>Scan frequency</h2>
+                    <p>How often should your bear scan Binance for opportunities?</p>
+                </div>
+
+                <div class="freq-grid">
+                    <label class="freq-option" onclick="selectFreq('1h', this)">
+                        <input type="radio" name="freq" value="1h">
+                        <span class="freq-value">1</span>
+                        <span class="freq-unit">hour</span>
+                    </label>
+                    <label class="freq-option selected" onclick="selectFreq('4h', this)">
+                        <input type="radio" name="freq" value="4h" checked>
+                        <span class="freq-value">4</span>
+                        <span class="freq-unit">hours</span>
+                    </label>
+                    <label class="freq-option" onclick="selectFreq('8h', this)">
+                        <input type="radio" name="freq" value="8h">
+                        <span class="freq-value">8</span>
+                        <span class="freq-unit">hours</span>
+                    </label>
+                    <label class="freq-option" onclick="selectFreq('24h', this)">
+                        <input type="radio" name="freq" value="24h">
+                        <span class="freq-value">24</span>
+                        <span class="freq-unit">hours</span>
+                    </label>
+                </div>
+
+                <div class="info-note" style="margin-top: 16px;">
+                    <strong>Note:</strong> Your bear will only message you when it finds something worth flagging — not on every scan.
+                </div>
             </div>
 
-            <!-- Navigation -->
-            <div class="button-group">
-                <button type="button" class="btn-secondary" id="prevBtn" onclick="prevStep()" style="display: none;">
-                    Back
-                </button>
-                <button type="button" class="btn-primary" id="nextBtn" onclick="nextStep()">
-                    Next
-                </button>
+            <!-- Step 7: Review -->
+            <div class="step-content" data-step="7">
+                <div class="step-header">
+                    <h2>Review & launch</h2>
+                    <p>Everything looks good? Let's go.</p>
+                </div>
+                <div id="reviewContent"></div>
             </div>
-        </form>
+
+        </div>
+
+        <!-- Navigation -->
+        <div class="nav">
+            <button class="btn btn-back" id="btnBack" onclick="prevStep()" style="display:none;">← Back</button>
+            <button class="btn btn-next" id="btnNext" onclick="nextStep()">Continue →</button>
+        </div>
+
     </div>
 
     <script>
+        const TOTAL_STEPS = 7;
+        const STEP_LABELS = ['Identity', 'Models', 'API Keys', 'Binance', 'Telegram', 'Schedule', 'Review'];
         let currentStep = 1;
-        const totalSteps = 6;
+        let selectedModels = [];
+        let defaultModel = null;
+        let validatedKeys = {};
+        let selectedFreq = '4h';
 
-        function showAlert(message, type) {
-            const alert = document.getElementById('alert');
-            alert.textContent = message;
-            alert.className = `alert alert-${type}`;
-            alert.style.display = 'block';
-            if (type === 'success') {
-                setTimeout(() => { alert.style.display = 'none'; }, 5000);
-            }
+        // ─── Progress bar ─────────────────────────────────────────
+        function renderProgress() {
+            const bar = document.getElementById('progressBar');
+            bar.innerHTML = STEP_LABELS.map((label, i) => {
+                const stepNum = i + 1;
+                const state = stepNum < currentStep ? 'completed' : stepNum === currentStep ? 'active' : '';
+                const dot = stepNum < currentStep ? '✓' : stepNum;
+                return `<div class="progress-step ${state}">
+                    <div class="progress-dot">${dot}</div>
+                    <div class="progress-label">${label}</div>
+                </div>`;
+            }).join('');
         }
 
+        // ─── Step navigation ──────────────────────────────────────
         function goToStep(step) {
-            if (step < 1 || step > totalSteps) return;
-
-            // Update step indicator
-            document.querySelectorAll('.step').forEach((el, i) => {
-                const stepNum = i + 1;
-                el.classList.remove('active', 'completed');
-                if (stepNum === step) el.classList.add('active');
-                else if (stepNum < step) el.classList.add('completed');
-            });
-
-            // Update step content
-            document.querySelectorAll('.step-content').forEach(el => {
-                el.classList.remove('active');
-            });
+            document.querySelectorAll('.step-content').forEach(el => el.classList.remove('active'));
             document.querySelector(`[data-step="${step}"]`).classList.add('active');
+            document.getElementById('btnBack').style.display = step > 1 ? 'block' : 'none';
 
-            // Update buttons
-            document.getElementById('prevBtn').style.display = step > 1 ? 'block' : 'none';
-            document.getElementById('nextBtn').textContent = step === totalSteps ? 'Save Configuration' : 'Next';
-
-            // Generate review if on review step
-            if (step === totalSteps) {
-                generateReview();
+            const nextBtn = document.getElementById('btnNext');
+            if (step === TOTAL_STEPS) {
+                nextBtn.textContent = '🚀 Launch Bear';
+                nextBtn.className = 'btn btn-launch';
+            } else {
+                nextBtn.textContent = 'Continue →';
+                nextBtn.className = 'btn btn-next';
             }
 
             currentStep = step;
-            window.scrollTo(0, 0);
+            renderProgress();
+            window.scrollTo({ top: 0, behavior: 'smooth' });
         }
 
         function nextStep() {
-            if (currentStep === totalSteps) {
-                submitForm();
-            } else {
-                goToStep(currentStep + 1);
-            }
+            if (!validateStep(currentStep)) return;
+            if (currentStep === TOTAL_STEPS) { submitConfig(); return; }
+            if (currentStep === 2) renderApiKeyFields();
+            if (currentStep === TOTAL_STEPS - 1) renderReview();
+            goToStep(currentStep + 1);
         }
 
         function prevStep() {
             goToStep(currentStep - 1);
         }
 
-        function updateApiFields() {
-            const model = document.querySelector('input[name="model"]:checked').value;
-            document.querySelectorAll('.api-field').forEach(el => {
-                el.classList.remove('active');
-            });
-            document.querySelector(`[data-model="${model}"]`).classList.add('active');
-
-            // Update model selection UI
-            document.querySelectorAll('.model-option').forEach(el => {
-                el.classList.remove('selected');
-            });
-            document.querySelector(`input[value="${model}"]`).closest('.model-option').classList.add('selected');
+        // ─── Validation ───────────────────────────────────────────
+        function validateStep(step) {
+            clearAlert();
+            if (step === 1) {
+                if (!document.getElementById('user_name').value.trim()) return showAlert('Please enter your name');
+                if (!document.getElementById('agent_name').value.trim()) return showAlert('Please name your agent');
+            }
+            if (step === 2) {
+                if (selectedModels.length === 0) return showAlert('Select at least one model');
+                if (!defaultModel) return showAlert('Set a default model');
+            }
+            if (step === 3) {
+                for (const model of selectedModels) {
+                    const key = document.getElementById(`key-${model}`)?.value?.trim();
+                    if (!key) return showAlert(`Enter API key for ${model.toUpperCase()}`);
+                }
+            }
+            if (step === 4) {
+                if (!document.getElementById('binance_key').value.trim()) return showAlert('Enter your Binance API key');
+                if (!document.getElementById('binance_secret').value.trim()) return showAlert('Enter your Binance API secret');
+            }
+            if (step === 5) {
+                if (!document.getElementById('telegram_token').value.trim()) return showAlert('Enter your Telegram bot token');
+            }
+            return true;
         }
 
-        document.querySelectorAll('input[name="model"]').forEach(el => {
-            el.addEventListener('change', updateApiFields);
-        });
-
-        async function testApiKey(service) {
-            let key = '';
-            
-            if (service === 'claude') key = document.getElementById('claude_key').value;
-            else if (service === 'openai') key = document.getElementById('openai_key').value;
-            else if (service === 'kimi') key = document.getElementById('kimi_key').value;
-            else if (service === 'google') key = document.getElementById('google_key').value;
-            else if (service === 'binance') key = document.getElementById('binance_key').value;
-            else if (service === 'telegram') key = document.getElementById('telegram_token').value;
-
-            if (!key) {
-                showAlert(`❌ Enter your ${service} key first`, 'error');
-                return;
+        // ─── Model selection ──────────────────────────────────────
+        function toggleModel(model) {
+            const idx = selectedModels.indexOf(model);
+            if (idx === -1) {
+                selectedModels.push(model);
+                document.getElementById(`card-${model}`).classList.add('selected');
+                document.getElementById(`check-${model}`).innerHTML = '✓';
+            } else {
+                selectedModels.splice(idx, 1);
+                document.getElementById(`card-${model}`).classList.remove('selected');
+                document.getElementById(`check-${model}`).innerHTML = '';
+                if (defaultModel === model) {
+                    defaultModel = selectedModels[0] || null;
+                }
             }
+            renderDefaultSelector();
+        }
 
-            const status = document.getElementById(`${service}-status`);
-            status.innerHTML = '<span class="spinner"></span>';
+        function renderDefaultSelector() {
+            const selector = document.getElementById('defaultSelector');
+            const opts = document.getElementById('defaultOptions');
+            if (selectedModels.length === 0) { selector.style.display = 'none'; return; }
+            selector.style.display = 'block';
 
+            const names = { claude: 'Claude', openai: 'GPT-4o', gemini: 'Gemini', kimi: 'Kimi' };
+            opts.innerHTML = selectedModels.map(m =>
+                `<button type="button" class="default-option ${defaultModel === m ? 'active' : ''}" onclick="setDefault('${m}')">${names[m]}</button>`
+            ).join('');
+
+            if (!defaultModel && selectedModels.length === 1) setDefault(selectedModels[0]);
+        }
+
+        function setDefault(model) {
+            defaultModel = model;
+            renderDefaultSelector();
+        }
+
+        // ─── API key fields ───────────────────────────────────────
+        const MODEL_META = {
+            claude:  { name: 'Claude',  provider: 'Anthropic',  placeholder: 'sk-ant-...', link: 'https://console.anthropic.com' },
+            openai:  { name: 'GPT-4o',  provider: 'OpenAI',     placeholder: 'sk-...',     link: 'https://platform.openai.com/api-keys' },
+            gemini:  { name: 'Gemini',  provider: 'Google',     placeholder: 'AIza...',    link: 'https://aistudio.google.com/app/apikey' },
+            kimi:    { name: 'Kimi',    provider: 'Moonshot AI', placeholder: 'sk-...',    link: 'https://platform.moonshot.cn' },
+        };
+
+        function renderApiKeyFields() {
+            const container = document.getElementById('apiKeyFields');
+            container.innerHTML = selectedModels.map(model => {
+                const m = MODEL_META[model];
+                return `
+                <div class="api-section">
+                    <div class="api-section-header">
+                        <span class="api-section-name">${m.name}</span>
+                        <span class="api-section-provider">${m.provider}</span>
+                    </div>
+                    <div class="input-row">
+                        <input type="password" id="key-${model}" placeholder="${m.placeholder}" autocomplete="off">
+                        <button class="test-btn" onclick="testModelKey('${model}')">Test</button>
+                    </div>
+                    <div class="validation-row">
+                        <div class="validation-dot" id="dot-${model}"></div>
+                        <span class="validation-text" id="txt-${model}"></span>
+                    </div>
+                    <div class="help-text"><a href="${m.link}" target="_blank">Get key →</a></div>
+                </div>`;
+            }).join('');
+        }
+
+        // ─── Key testing ──────────────────────────────────────────
+        async function testModelKey(model) {
+            const key = document.getElementById(`key-${model}`)?.value?.trim();
+            if (!key) { setValidation(model, 'error', 'Enter a key first'); return; }
+            setValidation(model, 'testing', 'Validating...');
             try {
-                const response = await fetch('/api/test-key', {
+                const res = await fetch('/api/test-key', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ service: model, key })
+                });
+                const data = await res.json();
+                if (data.success) {
+                    setValidation(model, 'success', '✓ Valid');
+                    validatedKeys[model] = true;
+                } else {
+                    setValidation(model, 'error', '✗ Invalid key');
+                }
+            } catch {
+                setValidation(model, 'error', '✗ Could not reach server');
+            }
+        }
+
+        async function testKey(service) {
+            const inputId = service === 'binance' ? 'binance_key' : 'telegram_token';
+            const key = document.getElementById(inputId)?.value?.trim();
+            if (!key) { setValidation(service, 'error', 'Enter a value first'); return; }
+            setValidation(service, 'testing', 'Validating...');
+            try {
+                const res = await fetch('/api/test-key', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({ service, key })
                 });
-
-                const result = await response.json();
-
-                if (result.success) {
-                    status.className = 'test-status success';
-                    status.textContent = '✅ Valid';
+                const data = await res.json();
+                if (data.success) {
+                    setValidation(service, 'success', '✓ Connected');
+                    validatedKeys[service] = true;
                 } else {
-                    status.className = 'test-status error';
-                    status.textContent = '❌ Invalid';
+                    setValidation(service, 'error', '✗ ' + (data.error || 'Invalid'));
                 }
-            } catch (error) {
-                status.className = 'test-status error';
-                status.textContent = '❌ Error';
+            } catch {
+                setValidation(service, 'error', '✗ Could not reach server');
             }
         }
 
-        function generateReview() {
-            const model = document.querySelector('input[name="model"]:checked').value;
-            let apiKey = '';
-            
-            if (model === 'claude') apiKey = document.getElementById('claude_key').value ? '✅ Set' : '❌ Missing';
-            else if (model === 'openai') apiKey = document.getElementById('openai_key').value ? '✅ Set' : '❌ Missing';
-            else if (model === 'kimi') apiKey = document.getElementById('kimi_key').value ? '✅ Set' : '❌ Missing';
-            else if (model === 'google') apiKey = document.getElementById('google_key').value ? '✅ Set' : '❌ Missing';
-
-            const review = `
-                <div class="review-item">
-                    <span class="review-label">Agent Name:</span>
-                    <span class="review-value">${document.getElementById('agent_name').value}</span>
-                </div>
-                <div class="review-item">
-                    <span class="review-label">Your Name:</span>
-                    <span class="review-value">${document.getElementById('user_name').value}</span>
-                </div>
-                <div class="review-item">
-                    <span class="review-label">AI Model:</span>
-                    <span class="review-value">${model.toUpperCase()}</span>
-                </div>
-                <div class="review-item">
-                    <span class="review-label">${model} API Key:</span>
-                    <span class="review-value">${apiKey}</span>
-                </div>
-                <div class="review-item">
-                    <span class="review-label">Binance API:</span>
-                    <span class="review-value">${document.getElementById('binance_key').value ? '✅ Set' : '❌ Missing'}</span>
-                </div>
-                <div class="review-item">
-                    <span class="review-label">Testnet:</span>
-                    <span class="review-value">${document.getElementById('testnet').checked ? '✅ Yes' : '❌ No'}</span>
-                </div>
-                <div class="review-item">
-                    <span class="review-label">Telegram Bot:</span>
-                    <span class="review-value">${document.getElementById('telegram_token').value ? '✅ Set' : '❌ Missing'}</span>
-                </div>
-            `;
-
-            document.getElementById('review-content').innerHTML = review;
+        function setValidation(id, state, msg) {
+            const dot = document.getElementById(`${id}-dot`) || document.getElementById(`dot-${id}`);
+            const txt = document.getElementById(`${id}-text`) || document.getElementById(`txt-${id}`);
+            if (!dot || !txt) return;
+            dot.className = `validation-dot ${state}`;
+            txt.className = `validation-text ${state}`;
+            txt.textContent = msg;
         }
 
-        async function submitForm() {
-            const model = document.querySelector('input[name="model"]:checked').value;
-            let apiKey = '';
+        // ─── Testnet toggle ───────────────────────────────────────
+        function toggleTestnet() {
+            const input = document.getElementById('testnet');
+            const toggle = document.getElementById('testnet-toggle');
+            const isOn = input.value === 'true';
+            input.value = isOn ? 'false' : 'true';
+            toggle.className = `toggle-switch ${isOn ? '' : 'on'}`;
+        }
 
-            if (model === 'claude') apiKey = document.getElementById('claude_key').value;
-            else if (model === 'openai') apiKey = document.getElementById('openai_key').value;
-            else if (model === 'kimi') apiKey = document.getElementById('kimi_key').value;
-            else if (model === 'google') apiKey = document.getElementById('google_key').value;
+        // ─── Scan frequency ───────────────────────────────────────
+        function selectFreq(val, el) {
+            selectedFreq = val;
+            document.querySelectorAll('.freq-option').forEach(o => o.classList.remove('selected'));
+            el.classList.add('selected');
+        }
 
-            const data = {
-                agent_name: document.getElementById('agent_name').value,
-                user_name: document.getElementById('user_name').value,
-                model: model,
-                api_key: apiKey,
-                binance_key: document.getElementById('binance_key').value,
-                binance_secret: document.getElementById('binance_secret').value,
-                testnet: document.getElementById('testnet').checked,
-                telegram_token: document.getElementById('telegram_token').value,
-                db_path: document.getElementById('db_path').value,
+        // ─── Review ───────────────────────────────────────────────
+        function renderReview() {
+            const names = { claude: 'Claude', openai: 'GPT-4o', gemini: 'Gemini', kimi: 'Kimi' };
+            const modelList = selectedModels.map(m =>
+                `<div class="review-item">
+                    <span class="review-key">${names[m]}${m === defaultModel ? ' (default)' : ''}</span>
+                    <span class="review-val ok">✓ configured</span>
+                </div>`
+            ).join('');
+
+            document.getElementById('reviewContent').innerHTML = `
+                <div class="review-group">
+                    <div class="review-group-title">Identity</div>
+                    <div class="review-item">
+                        <span class="review-key">Your name</span>
+                        <span class="review-val">${document.getElementById('user_name').value}</span>
+                    </div>
+                    <div class="review-item">
+                        <span class="review-key">Agent name</span>
+                        <span class="review-val">${document.getElementById('agent_name').value}</span>
+                    </div>
+                </div>
+                <div class="review-group">
+                    <div class="review-group-title">Models</div>
+                    ${modelList}
+                </div>
+                <div class="review-group">
+                    <div class="review-group-title">Connections</div>
+                    <div class="review-item">
+                        <span class="review-key">Binance</span>
+                        <span class="review-val ${document.getElementById('binance_key').value ? 'ok' : 'missing'}">${document.getElementById('binance_key').value ? '✓ configured' : '✗ missing'}</span>
+                    </div>
+                    <div class="review-item">
+                        <span class="review-key">Testnet mode</span>
+                        <span class="review-val">${document.getElementById('testnet').value === 'true' ? 'Yes' : 'No'}</span>
+                    </div>
+                    <div class="review-item">
+                        <span class="review-key">Telegram</span>
+                        <span class="review-val ${document.getElementById('telegram_token').value ? 'ok' : 'missing'}">${document.getElementById('telegram_token').value ? '✓ configured' : '✗ missing'}</span>
+                    </div>
+                </div>
+                <div class="review-group">
+                    <div class="review-group-title">Schedule</div>
+                    <div class="review-item">
+                        <span class="review-key">Scan frequency</span>
+                        <span class="review-val">Every ${selectedFreq}</span>
+                    </div>
+                </div>`;
+        }
+
+        // ─── Submit ───────────────────────────────────────────────
+        async function submitConfig() {
+            const btn = document.getElementById('btnNext');
+            btn.disabled = true;
+            btn.textContent = 'Saving...';
+
+            const modelKeys = {};
+            selectedModels.forEach(model => {
+                const val = document.getElementById(`key-${model}`)?.value?.trim();
+                if (val) modelKeys[model] = val;
+            });
+
+            const payload = {
+                user_name: document.getElementById('user_name').value.trim(),
+                agent_name: document.getElementById('agent_name').value.trim(),
+                models: selectedModels,
+                default_model: defaultModel,
+                model_keys: modelKeys,
+                binance_key: document.getElementById('binance_key').value.trim(),
+                binance_secret: document.getElementById('binance_secret').value.trim(),
+                testnet: document.getElementById('testnet').value === 'true',
+                telegram_token: document.getElementById('telegram_token').value.trim(),
+                scan_frequency: selectedFreq,
             };
 
-            const nextBtn = document.getElementById('nextBtn');
-            nextBtn.disabled = true;
-            nextBtn.textContent = 'Saving...';
-
             try {
-                const response = await fetch('/api/config', {
+                const res = await fetch('/api/config', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify(data),
+                    body: JSON.stringify(payload)
                 });
+                const data = await res.json();
 
-                const result = await response.json();
-
-                if (result.success) {
-                    showAlert('✅ Configuration saved! Close this window and run: python3 backend/telegram_bot.py', 'success');
-                    nextBtn.textContent = 'Configuration Saved ✅';
+                if (data.success) {
+                    showSuccessScreen();
                 } else {
-                    showAlert(`❌ Error: ${result.error}`, 'error');
-                    nextBtn.disabled = false;
-                    nextBtn.textContent = 'Save Configuration';
+                    showAlert('Error saving config: ' + (data.error || 'Unknown error'));
+                    btn.disabled = false;
+                    btn.textContent = '🚀 Launch Bear';
                 }
-            } catch (error) {
-                showAlert(`❌ Network error: ${error.message}`, 'error');
-                nextBtn.disabled = false;
-                nextBtn.textContent = 'Save Configuration';
+            } catch (err) {
+                showAlert('Network error — is the server running?');
+                btn.disabled = false;
+                btn.textContent = '🚀 Launch Bear';
             }
         }
 
-        // Initialize
-        updateApiFields();
+        function showSuccessScreen() {
+            document.querySelector('.card').innerHTML = `
+                <div class="success-screen">
+                    <span class="success-emoji">🐻</span>
+                    <h2>You're all set!</h2>
+                    <p>Your crypto-cex-bear is configured and ready to hunt opportunities.</p>
+                    <div class="next-steps">
+                        <p>What's next</p>
+                        <div class="next-step-item">
+                            <div class="step-num">1</div>
+                            <span>Open your terminal in the agent folder</span>
+                        </div>
+                        <div class="next-step-item">
+                            <div class="step-num">2</div>
+                            <span>Start your bear:</span>
+                        </div>
+                    </div>
+                    <div class="command-block">python agents/crypto-cex-bear/telegram_bot.py</div>
+                    <div class="next-step-item" style="justify-content:center; color: var(--text2); font-size:13px;">
+                        Then message your bot on Telegram — try <strong>/help</strong>
+                    </div>
+                </div>`;
+            document.querySelector('.nav').style.display = 'none';
+            document.getElementById('progressBar').style.display = 'none';
+        }
+
+        // ─── Alert ────────────────────────────────────────────────
+        function showAlert(msg) {
+            const el = document.getElementById('alert');
+            el.textContent = msg;
+            el.className = 'alert alert-error';
+            el.style.display = 'block';
+            return false;
+        }
+
+        function clearAlert() {
+            const el = document.getElementById('alert');
+            el.style.display = 'none';
+        }
+
+        // ─── Init ─────────────────────────────────────────────────
+        renderProgress();
     </script>
 </body>
 </html>
