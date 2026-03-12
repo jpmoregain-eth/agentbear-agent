@@ -300,6 +300,30 @@ class CodeMemory:
         conn.commit()
         conn.close()
     
+    def store_file_write(self, file_path: str, content_length: int):
+        """Track file write operation"""
+        conn = sqlite3.connect(self.db_path)
+        cursor = conn.cursor()
+        
+        # Create file_operations table if not exists
+        cursor.execute('''
+            CREATE TABLE IF NOT EXISTS file_operations (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                file_path TEXT NOT NULL,
+                operation TEXT NOT NULL,
+                content_length INTEGER,
+                created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+            )
+        ''')
+        
+        cursor.execute('''
+            INSERT INTO file_operations (file_path, operation, content_length)
+            VALUES (?, 'write', ?)
+        ''', (file_path, content_length))
+        
+        conn.commit()
+        conn.close()
+    
     def clear_memory(self):
         """Clear all memory (use with caution)"""
         conn = sqlite3.connect(self.db_path)

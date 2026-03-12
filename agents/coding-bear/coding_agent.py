@@ -1,6 +1,6 @@
 """
 Coding Bear Agent - AI-powered coding assistant
-Analyzes code, reviews PRs, debugs errors, and helps with development
+Analyzes code, writes new code, edits files, and syncs with GitHub
 """
 
 import os
@@ -8,6 +8,8 @@ import sys
 import yaml
 import json
 import logging
+import subprocess
+import shutil
 from typing import Dict, List, Optional, Any
 from pathlib import Path
 from dataclasses import dataclass, asdict
@@ -19,6 +21,7 @@ from rich.panel import Panel
 from rich.markdown import Markdown
 from rich.syntax import Syntax
 from rich.table import Table
+from rich.prompt import Confirm
 
 from memory import CodeMemory
 from code_analyzer import CodeAnalyzer
@@ -308,11 +311,15 @@ Include:
             "[bold green]🐻 Coding Bear Agent[/bold green]\n"
             "Your AI coding assistant is ready!\n\n"
             "Commands:\n"
+            "  generate <desc>   - Generate new code\n"
+            "  implement <file>  - Add feature to file\n"
             "  review <file>     - Review code\n"
             "  debug <error>     - Debug error\n"
             "  refactor <file>   - Refactor code\n"
+            "  edit <file>       - Edit file\n"
             "  test <file>       - Generate tests\n"
-            "  explain <code>    - Explain code\n"
+            "  read <file>       - Read file\n"
+            "  git <cmd>         - Git operations\n"
             "  help              - Show help\n"
             "  exit              - Quit",
             title="Coding Bear",
@@ -335,6 +342,14 @@ Include:
                     break
                 elif command == 'help':
                     self._show_help()
+                elif command == 'generate':
+                    self.generate_code(arg)
+                elif command == 'implement':
+                    impl_parts = arg.split(maxsplit=1)
+                    if len(impl_parts) == 2:
+                        self.implement_feature(impl_parts[0], impl_parts[1])
+                    else:
+                        console.print("[red]Usage: implement <file> <feature description>[/red]")
                 elif command == 'review':
                     if os.path.exists(arg):
                         self.review_code(arg)
@@ -347,6 +362,12 @@ Include:
                         self.refactor_code(arg)
                     else:
                         console.print("[red]File not found[/red]")
+                elif command == 'edit':
+                    edit_parts = arg.split(maxsplit=1)
+                    if len(edit_parts) == 2:
+                        self.edit_file(edit_parts[0], edit_parts[1])
+                    else:
+                        console.print("[red]Usage: edit <file> <changes description>[/red]")
                 elif command == 'test':
                     if os.path.exists(arg):
                         self.generate_tests(arg)
@@ -354,6 +375,26 @@ Include:
                         console.print("[red]File not found[/red]")
                 elif command == 'explain':
                     self.explain_code(arg)
+                elif command == 'read':
+                    self.read_file(arg)
+                elif command == 'git':
+                    git_parts = arg.split(maxsplit=1)
+                    git_cmd = git_parts[0] if git_parts else ""
+                    git_arg = git_parts[1] if len(git_parts) > 1 else ""
+                    
+                    if git_cmd == 'status':
+                        self.git_status()
+                    elif git_cmd == 'commit':
+                        if git_arg:
+                            self.git_commit(git_arg)
+                        else:
+                            console.print("[red]Usage: git commit <message>[/red]")
+                    elif git_cmd == 'push':
+                        self.git_push()
+                    elif git_cmd == 'pull':
+                        self.git_pull()
+                    else:
+                        console.print("[red]Git commands: status, commit <msg>, push, pull[/red]")
                 else:
                     # General question
                     response = self._call_llm(
@@ -372,30 +413,270 @@ Include:
         help_text = """
 # Coding Bear Commands
 
-## Code Review
+## Code Generation
+- `generate <description>` - Write new code from scratch
+  Example: `generate "a Python script to scrape Hacker News"`
+
+- `implement <feature>` - Add feature to existing file
+  Example: `implement add error handling to main.py`
+
+## File Operations
+- `write <file> <code>` - Write code to file
+- `edit <file> <changes>` - Edit existing file
+- `read <file>` - Read file contents
+
+## Git Operations
+- `git status` - Check repository status
+- `git commit <message>` - Commit changes
+- `git push` - Push to remote
+- `git pull` - Pull from remote
+
+## Code Review & Analysis
 - `review <file>` - Comprehensive code review
-- Example: `review src/main.py`
-
-## Debugging
-- `debug <error message>` - Analyze and fix errors
-- Example: `debug "TypeError: 'NoneType' object is not callable"`
-
-## Refactoring
+- `debug <error>` - Debug errors
 - `refactor <file>` - Improve code quality
-- Example: `refactor old_script.py`
-
-## Testing
 - `test <file>` - Generate unit tests
-- Example: `test utils.py`
-
-## Explanation
-- `explain <code snippet>` - Explain what code does
-- Example: `explain "def fib(n): return n if n < 2 else fib(n-1) + fib(n-2)"`
+- `explain <code>` - Explain what code does
 
 ## General
 - Just type any coding question!
         """
         console.print(Markdown(help_text))
+
+    def generate_code(self, description: str, language: str = "python", save_path: str = None) -> str:
+        """Generate new code from description"""
+        console.print(f"[blue]Generating {language} code...[/blue]")
+        
+        system_prompt = f"""You are an expert {language} developer. 
+Write clean, well-documented, production-ready code based on the user's description.
+Include:
+- Proper error handling
+- Type hints (if applicable)
+- Docstrings/comments
+- Best practices for the language
+
+Output ONLY the code, no explanations."""
+
+        user_prompt = f"Write {language} code for: {description}"
+        
+        code = self._call_llm(system_prompt, user_prompt, max_tokens=6000)
+        
+        console.print(Panel(Syntax(code, language), title="Generated Code", border_style="green"))
+        
+        # Offer to save
+        if save_path or Confirm.ask("Save to file?", default=False):
+            if not save_path:
+                save_path = console.input("Enter file path: ")
+            self.write_file(save_path, code)
+        
+        return code
+
+    def implement_feature(self, file_path: str, feature_description: str) -> str:
+        """Implement a new feature in existing file"""
+        if not os.path.exists(file_path):
+            console.print(f"[red]File not found: {file_path}[/red]")
+            return ""
+        
+        with open(file_path, 'r') as f:
+            existing_code = f.read()
+        
+        console.print(f"[blue]Implementing feature in {file_path}...[/blue]")
+        
+        system_prompt = """You are a senior software engineer. Implement the requested feature
+in the existing code. Return the COMPLETE updated file with the new feature integrated.
+Maintain existing code style and patterns."""
+
+        user_prompt = f"""Existing code:
+```
+{existing_code}
+```
+
+Feature to implement: {feature_description}
+
+Return the complete updated file."""
+
+        updated_code = self._call_llm(system_prompt, user_prompt, max_tokens=6000)
+        
+        # Extract code from markdown if present
+        if "```" in updated_code:
+            lines = updated_code.split('\n')
+            in_code = False
+            code_lines = []
+            for line in lines:
+                if line.startswith('```'):
+                    in_code = not in_code
+                    continue
+                if in_code:
+                    code_lines.append(line)
+            updated_code = '\n'.join(code_lines)
+        
+        console.print(Panel(
+            Syntax(updated_code, self._get_language(file_path)), 
+            title=f"Updated: {file_path}", 
+            border_style="cyan"
+        ))
+        
+        if Confirm.ask(f"Save changes to {file_path}?", default=True):
+            self.write_file(file_path, updated_code)
+            console.print(f"[green]✓ Saved to {file_path}[/green]")
+        
+        return updated_code
+
+    def write_file(self, file_path: str, content: str):
+        """Write content to file"""
+        path = Path(file_path)
+        path.parent.mkdir(parents=True, exist_ok=True)
+        
+        with open(path, 'w') as f:
+            f.write(content)
+        
+        console.print(f"[green]✓ Written {len(content)} characters to {file_path}[/green]")
+        
+        # Track in memory
+        if self.memory:
+            self.memory.store_file_write(file_path, len(content))
+
+    def edit_file(self, file_path: str, edit_description: str):
+        """Edit file based on description"""
+        if not os.path.exists(file_path):
+            console.print(f"[red]File not found: {file_path}[/red]")
+            return
+        
+        with open(file_path, 'r') as f:
+            content = f.read()
+        
+        system_prompt = """You are a precise code editor. Make ONLY the requested changes.
+Return the COMPLETE updated file with your changes applied."""
+
+        user_prompt = f"""File: {file_path}
+
+Current content:
+```
+{content}
+```
+
+Changes to make: {edit_description}
+
+Return the complete updated file."""
+
+        updated = self._call_llm(system_prompt, user_prompt, max_tokens=6000)
+        
+        # Clean up markdown
+        if "```" in updated:
+            lines = updated.split('\n')
+            in_code = False
+            result = []
+            for line in lines:
+                if line.startswith('```'):
+                    in_code = not in_code
+                    continue
+                if in_code:
+                    result.append(line)
+            updated = '\n'.join(result)
+        
+        # Show diff
+        self._show_diff(content, updated, file_path)
+        
+        if Confirm.ask("Apply changes?", default=True):
+            backup_path = f"{file_path}.backup"
+            shutil.copy(file_path, backup_path)
+            self.write_file(file_path, updated)
+            console.print(f"[green]✓ Changes applied (backup: {backup_path})[/green]")
+
+    def _show_diff(self, old: str, new: str, file_path: str):
+        """Show diff between old and new code"""
+        import difflib
+        diff = list(difflib.unified_diff(
+            old.splitlines(keepends=True),
+            new.splitlines(keepends=True),
+            fromfile=f"{file_path} (old)",
+            tofile=f"{file_path} (new)"
+        ))
+        
+        if diff:
+            console.print(Panel(
+                ''.join(diff)[:4000],
+                title="Changes",
+                border_style="yellow"
+            ))
+        else:
+            console.print("[yellow]No changes detected[/yellow]")
+
+    def read_file(self, file_path: str, limit: int = 100) -> str:
+        """Read and display file"""
+        if not os.path.exists(file_path):
+            console.print(f"[red]File not found: {file_path}[/red]")
+            return ""
+        
+        with open(file_path, 'r') as f:
+            lines = f.readlines()[:limit]
+            content = ''.join(lines)
+        
+        console.print(Panel(
+            Syntax(content, self._get_language(file_path)),
+            title=file_path,
+            border_style="blue"
+        ))
+        
+        return content
+
+    def git_status(self):
+        """Show git status"""
+        try:
+            result = subprocess.run(
+                ['git', 'status'],
+                capture_output=True,
+                text=True,
+                check=True
+            )
+            console.print(Panel(
+                result.stdout,
+                title="Git Status",
+                border_style="purple"
+            ))
+        except subprocess.CalledProcessError as e:
+            console.print(f"[red]Git error: {e.stderr}[/red]")
+
+    def git_commit(self, message: str):
+        """Commit changes"""
+        try:
+            # Stage all changes
+            subprocess.run(['git', 'add', '-A'], check=True)
+            # Commit
+            subprocess.run(['git', 'commit', '-m', message], check=True)
+            console.print(f"[green]✓ Committed: {message}[/green]")
+        except subprocess.CalledProcessError as e:
+            console.print(f"[red]Git commit failed: {e}[/red]")
+
+    def git_push(self):
+        """Push to remote"""
+        try:
+            result = subprocess.run(
+                ['git', 'push'],
+                capture_output=True,
+                text=True,
+                check=True
+            )
+            console.print("[green]✓ Pushed to remote[/green]")
+            if result.stdout:
+                console.print(result.stdout)
+        except subprocess.CalledProcessError as e:
+            console.print(f"[red]Git push failed: {e.stderr}[/red]")
+
+    def git_pull(self):
+        """Pull from remote"""
+        try:
+            result = subprocess.run(
+                ['git', 'pull'],
+                capture_output=True,
+                text=True,
+                check=True
+            )
+            console.print("[green]✓ Pulled from remote[/green]")
+            if result.stdout:
+                console.print(result.stdout)
+        except subprocess.CalledProcessError as e:
+            console.print(f"[red]Git pull failed: {e.stderr}[/red]")
 
 
 def main():
@@ -408,6 +689,10 @@ def main():
     parser.add_argument('--debug', help='Debug an error')
     parser.add_argument('--refactor', help='Refactor a file')
     parser.add_argument('--test', help='Generate tests for file')
+    parser.add_argument('--generate', '-g', help='Generate code from description')
+    parser.add_argument('--implement', nargs=2, metavar=('FILE', 'FEATURE'), help='Implement feature in file')
+    parser.add_argument('--edit', nargs=2, metavar=('FILE', 'CHANGES'), help='Edit file')
+    parser.add_argument('--read', help='Read file contents')
     parser.add_argument('--interactive', '-i', action='store_true', help='Interactive mode')
     
     args = parser.parse_args()
@@ -422,6 +707,14 @@ def main():
         agent.refactor_code(args.refactor)
     elif args.test:
         agent.generate_tests(args.test)
+    elif args.generate:
+        agent.generate_code(args.generate)
+    elif args.implement:
+        agent.implement_feature(args.implement[0], args.implement[1])
+    elif args.edit:
+        agent.edit_file(args.edit[0], args.edit[1])
+    elif args.read:
+        agent.read_file(args.read)
     else:
         agent.interactive_mode()
 
