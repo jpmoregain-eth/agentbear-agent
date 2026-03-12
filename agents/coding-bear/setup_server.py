@@ -262,6 +262,16 @@ def create_config():
     logger.info(f"Config created at {config_path}")
 
 
+def find_available_port(start_port=5000, max_port=5100):
+    """Find an available port"""
+    import socket
+    for port in range(start_port, max_port):
+        with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
+            if s.connect_ex(('localhost', port)) != 0:
+                return port
+    raise RuntimeError(f"No available ports found between {start_port} and {max_port}")
+
+
 if __name__ == '__main__':
     import webbrowser
     import threading
@@ -269,8 +279,15 @@ if __name__ == '__main__':
     print("🐻 Coding Bear Setup Server")
     print("=" * 40)
     
-    # Try to open browser automatically
-    url = "http://localhost:5000"
+    # Find available port
+    try:
+        port = find_available_port()
+    except RuntimeError as e:
+        print(f"\n[red]Error: {e}[/red]")
+        print("Please free up a port between 5000-5100")
+        sys.exit(1)
+    
+    url = f"http://localhost:{port}"
     browser_opened = False
     
     def open_browser():
@@ -285,16 +302,15 @@ if __name__ == '__main__':
     threading.Timer(1.5, open_browser).start()
     
     print(f"\nStarting server at {url}")
+    if port != 5000:
+        print(f"(Port 5000 was in use, using {port} instead)")
     if not browser_opened:
         print("\nIf browser doesn't open automatically,")
         print(f"please manually open: {url}")
     print("\nPress Ctrl+C to stop\n")
     
     try:
-        app.run(host='0.0.0.0', port=5000, debug=False)
+        app.run(host='0.0.0.0', port=port, debug=False)
     except OSError as e:
-        if "Address already in use" in str(e):
-            print(f"\n[yellow]Server is already running![/yellow]")
-            print(f"Please open: {url}")
-        else:
-            raise
+        print(f"\n[red]Server error: {e}[/red]")
+        sys.exit(1)
