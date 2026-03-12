@@ -1,13 +1,57 @@
 """
 Setup Server for Coding Bear
 Web-based configuration wizard
+
+If running headless (no display), automatically falls back to CLI setup (setup.py)
 """
 
 import os
 import sys
+import subprocess
 import yaml
 import logging
 from pathlib import Path
+
+# Check if running headless before importing Flask
+def is_headless():
+    """Detect if running in headless environment"""
+    # Check for DISPLAY environment variable (Linux)
+    if os.environ.get('DISPLAY'):
+        return False
+    
+    # Check if we're in a terminal-only environment
+    if not sys.stdout.isatty():
+        return True
+    
+    # Check for SSH connection without X11 forwarding
+    if os.environ.get('SSH_CONNECTION') and not os.environ.get('DISPLAY'):
+        return True
+    
+    # Try to detect if we can open a browser
+    try:
+        import webbrowser
+        # On Linux, check if we have a browser that can open
+        if sys.platform == 'linux':
+            # Check for common browsers
+            browsers = ['google-chrome', 'chromium', 'firefox', 'xdg-open']
+            has_browser = any(
+                subprocess.run(['which', b], capture_output=True).returncode == 0
+                for b in browsers
+            )
+            if not has_browser:
+                return True
+    except:
+        pass
+    
+    return False
+
+# If headless, run CLI setup instead
+if is_headless():
+    print("🐻 Headless environment detected. Starting CLI setup...")
+    setup_script = Path(__file__).parent / 'setup.py'
+    subprocess.run([sys.executable, str(setup_script)])
+    sys.exit(0)
+
 from flask import Flask, render_template, request, jsonify, redirect, url_for
 
 # Add parent to path
@@ -219,6 +263,38 @@ def create_config():
 
 
 if __name__ == '__main__':
+    import webbrowser
+    import threading
+    
     print("🐻 Coding Bear Setup Server")
-    print("Open http://localhost:5000 in your browser")
-    app.run(host='0.0.0.0', port=5000, debug=True)
+    print("=" * 40)
+    
+    # Try to open browser automatically
+    url = "http://localhost:5000"
+    browser_opened = False
+    
+    def open_browser():
+        global browser_opened
+        try:
+            webbrowser.open(url)
+            browser_opened = True
+        except:
+            pass
+    
+    # Open browser in a thread (slight delay to let server start)
+    threading.Timer(1.5, open_browser).start()
+    
+    print(f"\nStarting server at {url}")
+    if not browser_opened:
+        print("\nIf browser doesn't open automatically,")
+        print(f"please manually open: {url}")
+    print("\nPress Ctrl+C to stop\n")
+    
+    try:
+        app.run(host='0.0.0.0', port=5000, debug=False)
+    except OSError as e:
+        if "Address already in use" in str(e):
+            print(f"\n[yellow]Server is already running![/yellow]")
+            print(f"Please open: {url}")
+        else:
+            raise
