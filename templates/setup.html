@@ -1,0 +1,729 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AgentBear Setup</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+
+        .container {
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+            width: 100%;
+            max-width: 550px;
+            padding: 40px;
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+
+        .header h1 {
+            color: #333;
+            font-size: 28px;
+            margin-bottom: 8px;
+        }
+
+        .header p {
+            color: #666;
+            font-size: 14px;
+        }
+
+        .steps {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 30px;
+            gap: 10px;
+        }
+
+        .step {
+            flex: 1;
+            text-align: center;
+            padding: 10px;
+            border-radius: 6px;
+            background: #f0f0f0;
+            color: #999;
+            font-size: 12px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .step.active {
+            background: #667eea;
+            color: white;
+        }
+
+        .step.completed {
+            background: #28a745;
+            color: white;
+        }
+
+        .step-content {
+            display: none;
+        }
+
+        .step-content.active {
+            display: block;
+        }
+
+        .step-title {
+            font-size: 18px;
+            font-weight: 600;
+            color: #333;
+            margin-bottom: 20px;
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        label {
+            display: block;
+            color: #333;
+            font-weight: 500;
+            margin-bottom: 6px;
+            font-size: 14px;
+        }
+
+        input[type="text"],
+        input[type="password"],
+        select {
+            width: 100%;
+            padding: 10px 12px;
+            border: 1px solid #ddd;
+            border-radius: 6px;
+            font-size: 14px;
+            transition: border-color 0.2s;
+        }
+
+        input[type="text"]:focus,
+        input[type="password"]:focus,
+        select:focus {
+            outline: none;
+            border-color: #667eea;
+            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+        }
+
+        .help-text {
+            color: #999;
+            font-size: 12px;
+            margin-top: 4px;
+        }
+
+        .checkbox-group {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        input[type="checkbox"] {
+            width: 18px;
+            height: 18px;
+            cursor: pointer;
+        }
+
+        .checkbox-group label {
+            margin: 0;
+            cursor: pointer;
+            flex: 1;
+        }
+
+        .model-selection {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 10px;
+            margin-bottom: 20px;
+        }
+
+        .model-option {
+            padding: 15px;
+            border: 2px solid #ddd;
+            border-radius: 6px;
+            cursor: pointer;
+            text-align: center;
+            transition: all 0.2s;
+        }
+
+        .model-option:hover {
+            border-color: #667eea;
+            background: #f8f9fa;
+        }
+
+        .model-option.selected {
+            border-color: #667eea;
+            background: #667eea;
+            color: white;
+        }
+
+        .model-option input[type="radio"] {
+            display: none;
+        }
+
+        .model-name {
+            font-weight: 600;
+            font-size: 14px;
+        }
+
+        .api-field {
+            display: none;
+        }
+
+        .api-field.active {
+            display: block;
+        }
+
+        .test-button {
+            display: inline-block;
+            padding: 6px 12px;
+            margin-top: 8px;
+            background: #667eea;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            font-size: 12px;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .test-button:hover {
+            background: #764ba2;
+        }
+
+        .test-button:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+        }
+
+        .test-status {
+            display: inline-block;
+            margin-left: 8px;
+            font-size: 12px;
+            margin-top: 8px;
+        }
+
+        .test-status.success {
+            color: #28a745;
+        }
+
+        .test-status.error {
+            color: #dc3545;
+        }
+
+        .button-group {
+            display: flex;
+            gap: 10px;
+            margin-top: 30px;
+        }
+
+        button {
+            flex: 1;
+            padding: 12px 20px;
+            border: none;
+            border-radius: 6px;
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+        }
+
+        .btn-primary:hover:not(:disabled) {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 20px rgba(102, 126, 234, 0.3);
+        }
+
+        .btn-secondary {
+            background: #ddd;
+            color: #333;
+        }
+
+        .btn-secondary:hover:not(:disabled) {
+            background: #bbb;
+        }
+
+        button:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .alert {
+            padding: 12px 14px;
+            border-radius: 6px;
+            margin-bottom: 20px;
+            font-size: 14px;
+            display: none;
+        }
+
+        .alert-success {
+            background: #d4edda;
+            color: #155724;
+            border: 1px solid #c3e6cb;
+        }
+
+        .alert-error {
+            background: #f8d7da;
+            color: #721c24;
+            border: 1px solid #f5c6cb;
+        }
+
+        .alert-info {
+            background: #d1ecf1;
+            color: #0c5460;
+            border: 1px solid #bee5eb;
+        }
+
+        .spinner {
+            display: none;
+            width: 14px;
+            height: 14px;
+            border: 2px solid #f3f3f3;
+            border-top: 2px solid currentColor;
+            border-radius: 50%;
+            animation: spin 0.8s linear infinite;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .review-item {
+            padding: 12px;
+            background: #f8f9fa;
+            border-radius: 6px;
+            margin-bottom: 10px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .review-label {
+            font-weight: 500;
+            color: #666;
+        }
+
+        .review-value {
+            color: #333;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🐻 AgentBear Setup</h1>
+            <p>Configure your crypto trading agent</p>
+        </div>
+
+        <div id="alert" class="alert"></div>
+
+        <div class="steps">
+            <div class="step active" data-step="1">1. Agent</div>
+            <div class="step" data-step="2">2. Model</div>
+            <div class="step" data-step="3">3. API Keys</div>
+            <div class="step" data-step="4">4. Exchange</div>
+            <div class="step" data-step="5">5. Telegram</div>
+            <div class="step" data-step="6">6. Review</div>
+        </div>
+
+        <form id="setupForm">
+            <!-- Step 1: Agent Settings -->
+            <div class="step-content active" data-step="1">
+                <div class="step-title">Agent Settings</div>
+                
+                <div class="form-group">
+                    <label for="agent_name">Agent Name</label>
+                    <input type="text" id="agent_name" name="agent_name" value="Sentinel" required>
+                    <div class="help-text">Give your agent a unique identity</div>
+                </div>
+
+                <div class="form-group">
+                    <label for="user_name">Your Name</label>
+                    <input type="text" id="user_name" name="user_name" value="Derek" required>
+                    <div class="help-text">Your trading name or username</div>
+                </div>
+            </div>
+
+            <!-- Step 2: Model Selection -->
+            <div class="step-content" data-step="2">
+                <div class="step-title">Select AI Model</div>
+                <div class="help-text" style="margin-bottom: 20px;">Choose your preferred AI model for analysis</div>
+
+                <div class="model-selection">
+                    <label class="model-option selected">
+                        <input type="radio" name="model" value="claude" checked>
+                        <div class="model-name">Claude</div>
+                        <div style="font-size: 11px; color: #666;">Anthropic</div>
+                    </label>
+                    <label class="model-option">
+                        <input type="radio" name="model" value="openai">
+                        <div class="model-name">GPT-4o</div>
+                        <div style="font-size: 11px; color: #666;">OpenAI</div>
+                    </label>
+                    <label class="model-option">
+                        <input type="radio" name="model" value="kimi">
+                        <div class="model-name">Kimi</div>
+                        <div style="font-size: 11px; color: #666;">Moonshot AI</div>
+                    </label>
+                    <label class="model-option">
+                        <input type="radio" name="model" value="google">
+                        <div class="model-name">Gemini</div>
+                        <div style="font-size: 11px; color: #666;">Google</div>
+                    </label>
+                </div>
+            </div>
+
+            <!-- Step 3: API Keys -->
+            <div class="step-content" data-step="3">
+                <div class="step-title">API Keys</div>
+                
+                <div class="api-field active" data-model="claude">
+                    <div class="form-group">
+                        <label for="claude_key">Claude API Key</label>
+                        <input type="password" id="claude_key" name="claude_key" placeholder="sk-ant-...">
+                        <div class="help-text">Get from console.anthropic.com</div>
+                        <button type="button" class="test-button" onclick="testApiKey('claude')">
+                            Test Key
+                        </button>
+                        <span class="test-status" id="claude-status"></span>
+                    </div>
+                </div>
+
+                <div class="api-field" data-model="openai">
+                    <div class="form-group">
+                        <label for="openai_key">OpenAI API Key</label>
+                        <input type="password" id="openai_key" name="openai_key" placeholder="sk-...">
+                        <div class="help-text">Get from platform.openai.com/api-keys</div>
+                        <button type="button" class="test-button" onclick="testApiKey('openai')">
+                            Test Key
+                        </button>
+                        <span class="test-status" id="openai-status"></span>
+                    </div>
+                </div>
+
+                <div class="api-field" data-model="kimi">
+                    <div class="form-group">
+                        <label for="kimi_key">Kimi API Key</label>
+                        <input type="password" id="kimi_key" name="kimi_key" placeholder="...">
+                        <div class="help-text">Get from platform.moonshot.cn</div>
+                        <button type="button" class="test-button" onclick="testApiKey('kimi')">
+                            Test Key
+                        </button>
+                        <span class="test-status" id="kimi-status"></span>
+                    </div>
+                </div>
+
+                <div class="api-field" data-model="google">
+                    <div class="form-group">
+                        <label for="google_key">Google Gemini API Key</label>
+                        <input type="password" id="google_key" name="google_key" placeholder="...">
+                        <div class="help-text">Get from makersuite.google.com/app/apikey</div>
+                        <button type="button" class="test-button" onclick="testApiKey('google')">
+                            Test Key
+                        </button>
+                        <span class="test-status" id="google-status"></span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Step 4: Exchange -->
+            <div class="step-content" data-step="4">
+                <div class="step-title">Exchange Settings</div>
+
+                <div class="form-group">
+                    <label for="binance_key">Binance API Key</label>
+                    <input type="text" id="binance_key" name="binance_key" placeholder="Your Binance API key" required>
+                    <div class="help-text">Create at binance.com/account/api-management with "Read" permission</div>
+                    <button type="button" class="test-button" onclick="testApiKey('binance')">
+                        Test Key
+                    </button>
+                    <span class="test-status" id="binance-status"></span>
+                </div>
+
+                <div class="form-group">
+                    <label for="binance_secret">Binance API Secret</label>
+                    <input type="password" id="binance_secret" name="binance_secret" placeholder="Your Binance API secret" required>
+                    <div class="help-text">Keep this secret and secure</div>
+                </div>
+
+                <div class="form-group">
+                    <div class="checkbox-group">
+                        <input type="checkbox" id="testnet" name="testnet">
+                        <label for="testnet">Use Binance Testnet (Recommended for first time)</label>
+                    </div>
+                    <div class="help-text">Testnet lets you trade with fake money to learn</div>
+                </div>
+            </div>
+
+            <!-- Step 5: Telegram -->
+            <div class="step-content" data-step="5">
+                <div class="step-title">Telegram Bot</div>
+
+                <div class="form-group">
+                    <label for="telegram_token">Telegram Bot Token</label>
+                    <input type="password" id="telegram_token" name="telegram_token" placeholder="123456:ABC-DEF..." required>
+                    <div class="help-text">Get from @BotFather on Telegram with /newbot</div>
+                    <button type="button" class="test-button" onclick="testApiKey('telegram')">
+                        Test Token
+                    </button>
+                    <span class="test-status" id="telegram-status"></span>
+                </div>
+
+                <div class="form-group">
+                    <label for="db_path">Database Path</label>
+                    <input type="text" id="db_path" name="db_path" value="agentbear_memory.db" required>
+                    <div class="help-text">Local SQLite database for agent memory</div>
+                </div>
+            </div>
+
+            <!-- Step 6: Review -->
+            <div class="step-content" data-step="6">
+                <div class="step-title">Review Configuration</div>
+                <div id="review-content"></div>
+            </div>
+
+            <!-- Navigation -->
+            <div class="button-group">
+                <button type="button" class="btn-secondary" id="prevBtn" onclick="prevStep()" style="display: none;">
+                    Back
+                </button>
+                <button type="button" class="btn-primary" id="nextBtn" onclick="nextStep()">
+                    Next
+                </button>
+            </div>
+        </form>
+    </div>
+
+    <script>
+        let currentStep = 1;
+        const totalSteps = 6;
+
+        function showAlert(message, type) {
+            const alert = document.getElementById('alert');
+            alert.textContent = message;
+            alert.className = `alert alert-${type}`;
+            alert.style.display = 'block';
+            if (type === 'success') {
+                setTimeout(() => { alert.style.display = 'none'; }, 5000);
+            }
+        }
+
+        function goToStep(step) {
+            if (step < 1 || step > totalSteps) return;
+
+            // Update step indicator
+            document.querySelectorAll('.step').forEach((el, i) => {
+                const stepNum = i + 1;
+                el.classList.remove('active', 'completed');
+                if (stepNum === step) el.classList.add('active');
+                else if (stepNum < step) el.classList.add('completed');
+            });
+
+            // Update step content
+            document.querySelectorAll('.step-content').forEach(el => {
+                el.classList.remove('active');
+            });
+            document.querySelector(`[data-step="${step}"]`).classList.add('active');
+
+            // Update buttons
+            document.getElementById('prevBtn').style.display = step > 1 ? 'block' : 'none';
+            document.getElementById('nextBtn').textContent = step === totalSteps ? 'Save Configuration' : 'Next';
+
+            // Generate review if on review step
+            if (step === totalSteps) {
+                generateReview();
+            }
+
+            currentStep = step;
+            window.scrollTo(0, 0);
+        }
+
+        function nextStep() {
+            if (currentStep === totalSteps) {
+                submitForm();
+            } else {
+                goToStep(currentStep + 1);
+            }
+        }
+
+        function prevStep() {
+            goToStep(currentStep - 1);
+        }
+
+        function updateApiFields() {
+            const model = document.querySelector('input[name="model"]:checked').value;
+            document.querySelectorAll('.api-field').forEach(el => {
+                el.classList.remove('active');
+            });
+            document.querySelector(`[data-model="${model}"]`).classList.add('active');
+
+            // Update model selection UI
+            document.querySelectorAll('.model-option').forEach(el => {
+                el.classList.remove('selected');
+            });
+            document.querySelector(`input[value="${model}"]`).closest('.model-option').classList.add('selected');
+        }
+
+        document.querySelectorAll('input[name="model"]').forEach(el => {
+            el.addEventListener('change', updateApiFields);
+        });
+
+        async function testApiKey(service) {
+            let key = '';
+            
+            if (service === 'claude') key = document.getElementById('claude_key').value;
+            else if (service === 'openai') key = document.getElementById('openai_key').value;
+            else if (service === 'kimi') key = document.getElementById('kimi_key').value;
+            else if (service === 'google') key = document.getElementById('google_key').value;
+            else if (service === 'binance') key = document.getElementById('binance_key').value;
+            else if (service === 'telegram') key = document.getElementById('telegram_token').value;
+
+            if (!key) {
+                showAlert(`❌ Enter your ${service} key first`, 'error');
+                return;
+            }
+
+            const status = document.getElementById(`${service}-status`);
+            status.innerHTML = '<span class="spinner"></span>';
+
+            try {
+                const response = await fetch('/api/test-key', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ service, key })
+                });
+
+                const result = await response.json();
+
+                if (result.success) {
+                    status.className = 'test-status success';
+                    status.textContent = '✅ Valid';
+                } else {
+                    status.className = 'test-status error';
+                    status.textContent = '❌ Invalid';
+                }
+            } catch (error) {
+                status.className = 'test-status error';
+                status.textContent = '❌ Error';
+            }
+        }
+
+        function generateReview() {
+            const model = document.querySelector('input[name="model"]:checked').value;
+            let apiKey = '';
+            
+            if (model === 'claude') apiKey = document.getElementById('claude_key').value ? '✅ Set' : '❌ Missing';
+            else if (model === 'openai') apiKey = document.getElementById('openai_key').value ? '✅ Set' : '❌ Missing';
+            else if (model === 'kimi') apiKey = document.getElementById('kimi_key').value ? '✅ Set' : '❌ Missing';
+            else if (model === 'google') apiKey = document.getElementById('google_key').value ? '✅ Set' : '❌ Missing';
+
+            const review = `
+                <div class="review-item">
+                    <span class="review-label">Agent Name:</span>
+                    <span class="review-value">${document.getElementById('agent_name').value}</span>
+                </div>
+                <div class="review-item">
+                    <span class="review-label">Your Name:</span>
+                    <span class="review-value">${document.getElementById('user_name').value}</span>
+                </div>
+                <div class="review-item">
+                    <span class="review-label">AI Model:</span>
+                    <span class="review-value">${model.toUpperCase()}</span>
+                </div>
+                <div class="review-item">
+                    <span class="review-label">${model} API Key:</span>
+                    <span class="review-value">${apiKey}</span>
+                </div>
+                <div class="review-item">
+                    <span class="review-label">Binance API:</span>
+                    <span class="review-value">${document.getElementById('binance_key').value ? '✅ Set' : '❌ Missing'}</span>
+                </div>
+                <div class="review-item">
+                    <span class="review-label">Testnet:</span>
+                    <span class="review-value">${document.getElementById('testnet').checked ? '✅ Yes' : '❌ No'}</span>
+                </div>
+                <div class="review-item">
+                    <span class="review-label">Telegram Bot:</span>
+                    <span class="review-value">${document.getElementById('telegram_token').value ? '✅ Set' : '❌ Missing'}</span>
+                </div>
+            `;
+
+            document.getElementById('review-content').innerHTML = review;
+        }
+
+        async function submitForm() {
+            const model = document.querySelector('input[name="model"]:checked').value;
+            let apiKey = '';
+
+            if (model === 'claude') apiKey = document.getElementById('claude_key').value;
+            else if (model === 'openai') apiKey = document.getElementById('openai_key').value;
+            else if (model === 'kimi') apiKey = document.getElementById('kimi_key').value;
+            else if (model === 'google') apiKey = document.getElementById('google_key').value;
+
+            const data = {
+                agent_name: document.getElementById('agent_name').value,
+                user_name: document.getElementById('user_name').value,
+                model: model,
+                api_key: apiKey,
+                binance_key: document.getElementById('binance_key').value,
+                binance_secret: document.getElementById('binance_secret').value,
+                testnet: document.getElementById('testnet').checked,
+                telegram_token: document.getElementById('telegram_token').value,
+                db_path: document.getElementById('db_path').value,
+            };
+
+            const nextBtn = document.getElementById('nextBtn');
+            nextBtn.disabled = true;
+            nextBtn.textContent = 'Saving...';
+
+            try {
+                const response = await fetch('/api/config', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(data),
+                });
+
+                const result = await response.json();
+
+                if (result.success) {
+                    showAlert('✅ Configuration saved! Close this window and run: python3 backend/telegram_bot.py', 'success');
+                    nextBtn.textContent = 'Configuration Saved ✅';
+                } else {
+                    showAlert(`❌ Error: ${result.error}`, 'error');
+                    nextBtn.disabled = false;
+                    nextBtn.textContent = 'Save Configuration';
+                }
+            } catch (error) {
+                showAlert(`❌ Network error: ${error.message}`, 'error');
+                nextBtn.disabled = false;
+                nextBtn.textContent = 'Save Configuration';
+            }
+        }
+
+        // Initialize
+        updateApiFields();
+    </script>
+</body>
+</html>

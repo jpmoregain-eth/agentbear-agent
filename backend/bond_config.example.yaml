@@ -1,0 +1,40 @@
+# AgentBear CEX Agent - Week 1 Configuration
+# Copy to bond_config.yaml and fill in your values
+
+agent:
+  name: "Sentinel"
+  type: "crypto"
+  version: "1.0.0"
+
+user:
+  name: "Trader"
+  language: "en"
+
+# AI Model (Binance only MVP = Claude only)
+models:
+  primary: "claude"
+
+model_keys:
+  claude_api_key: "YOUR_ANTHROPIC_API_KEY"
+
+# Binance Exchange Configuration
+exchanges:
+  cex:
+    binance:
+      enabled: true
+      api_key: "YOUR_BINANCE_API_KEY"
+      api_secret: "YOUR_BINANCE_API_SECRET"
+      testnet: false  # Set to true for testing
+
+# Telegram Messaging
+messaging:
+  type: "telegram"
+  bot_token: "YOUR_TELEGRAM_BOT_TOKEN"
+
+# Memory/Database
+memory:
+  database: "agentbear_memory.db"
+  retention:
+    conversations: 30
+    opportunities: 7
+    preferences: -1  # Forever
