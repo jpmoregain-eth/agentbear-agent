@@ -2,33 +2,94 @@
 
 {% block content %}
 
-<div class="welcome-content">
+<div class="welcome-content" id="launch-content">
     <div class="welcome-icon">✅</div>
     <h2 class="welcome-title">Setup Complete!</h2>
     
     <p class="welcome-description">
-        Your Coding Bear agent is ready to go!
+        Your Coding Bear agent is configured and ready!
     </p>
     
-    
-    <div class="welcome-features">
-        <h3>What's Next?</h3>
-        <ul>
-            <li>Run: <code style="background: rgba(99,102,241,0.2); padding: 0.2rem 0.5rem; border-radius: 0.25rem;">python coding_agent.py</code></li>
-            <li>Start coding with your AI assistant!</li>
-            <li>Chat on Telegram (if enabled)</li>
-        </ul>
+    <div id="launch-section">
+        <button onclick="launchAgent()" class="btn btn-primary" style="font-size: 1.2rem; padding: 1rem 2rem; margin-top: 1rem;">
+            🚀 Launch Agent
+        </button>
+        <p style="margin-top: 1rem; color: #64748b;">
+            Click to start your AI coding assistant
+        </p>
     </div>
     
+    <div id="launching-section" style="display: none;">
+        <div class="welcome-icon" style="animation: pulse 1.5s infinite;">🚀</div>
+        <h3 style="color: #6366f1;">Starting Agent...</h3>
+        <p style="color: #64748b;">This may take a few seconds</p>
+        <div style="margin-top: 1.5rem; padding: 1rem; background: rgba(99,102,241,0.1); border-radius: 0.5rem;">
+            <p style="margin: 0; color: #94a3b8; font-size: 0.9rem;">
+                💡 The agent is starting in the background.<br>
+                You can close this window and check your terminal.
+            </p>
+        </div>
+    </div>
     
-    <div style="margin-top: 2rem;">
-        <a href="/" class="btn btn-primary">Start Over</a>
-        <a href="https://github.com/jpmoregain-eth/agentbear-agent/tree/main/agents/coding-bear" 
-           class="btn btn-secondary" 
-           target="_blank">
-            View Documentation →
-        </a>
+    <div id="success-section" style="display: none;">
+        <div class="welcome-icon">🎉</div>
+        <h3 style="color: #22c55e;">Agent Started!</h3>
+        <p id="success-message">Your coding assistant is now running.</p>
+        
+        <div style="margin-top: 1.5rem;">
+            <button onclick="window.close()" class="btn btn-secondary">Close Window</button>
+        </div>
+    </div>
+    
+    <div id="error-section" style="display: none;">
+        <div class="welcome-icon">❌</div>
+        <h3 style="color: #ef4444;">Launch Failed</h3>
+        <p id="error-message">Something went wrong.</p>
+        
+        <div style="margin-top: 1.5rem;">
+            <a href="/" class="btn btn-secondary">← Back to Setup</a>
+        </div>
     </div>
 </div>
+
+<script>
+function launchAgent() {
+    document.getElementById('launch-section').style.display = 'none';
+    document.getElementById('launching-section').style.display = 'block';
+    
+    fetch('/launch', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json'
+        }
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            document.getElementById('launching-section').style.display = 'none';
+            document.getElementById('success-section').style.display = 'block';
+            document.getElementById('success-message').textContent = data.message;
+        } else {
+            showError(data.error || 'Unknown error');
+        }
+    })
+    .catch(error => {
+        showError(error.message);
+    });
+}
+
+function showError(message) {
+    document.getElementById('launching-section').style.display = 'none';
+    document.getElementById('error-section').style.display = 'block';
+    document.getElementById('error-message').textContent = message;
+}
+</script>
+
+<style>
+@keyframes pulse {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.5; }
+}
+</style>
 
 {% endblock %}

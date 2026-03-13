@@ -120,6 +120,55 @@ def complete():
     return render_template('complete.html', config_exists=config_path.exists())
 
 
+@app.route('/launch', methods=['POST'])
+def launch_agent():
+    """Launch the agent after setup is complete"""
+    config_path = Path(__file__).parent / 'bond_config.yaml'
+    
+    if not config_path.exists():
+        return jsonify({'error': 'Config not found. Please complete setup first.'}), 400
+    
+    try:
+        # Check if Telegram is enabled
+        with open(config_path, 'r') as f:
+            config = yaml.safe_load(f) or {}
+        
+        telegram_enabled = config.get('telegram', {}).get('enabled', False)
+        
+        if telegram_enabled:
+            # Launch with Telegram bot
+            subprocess.Popen(
+                [sys.executable, 'coding_agent.py'],
+                cwd=Path(__file__).parent,
+                stdout=subprocess.DEVNULL,
+                stderr=subprocess.DEVNULL,
+                start_new_session=True
+            )
+            return jsonify({
+                'success': True,
+                'message': 'Agent started with Telegram bot',
+                'mode': 'telegram'
+            })
+        else:
+            # Launch interactive mode
+            subprocess.Popen(
+                [sys.executable, 'coding_agent.py', '--no-telegram'],
+                cwd=Path(__file__).parent,
+                stdout=subprocess.DEVNULL,
+                stderr=subprocess.DEVNULL,
+                start_new_session=True
+            )
+            return jsonify({
+                'success': True,
+                'message': 'Agent started in interactive mode',
+                'mode': 'interactive'
+            })
+            
+    except Exception as e:
+        logger.error(f"Failed to launch agent: {e}")
+        return jsonify({'error': str(e)}), 500
+
+
 @app.route('/api/validate', methods=['POST'])
 def validate_api_key():
     """Validate API key"""

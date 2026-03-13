@@ -203,8 +203,8 @@
         document.querySelector('input[name="enable_github"]').checked ? 'block' : 'none';</script>
 
 {% elif step == 4 %}
-<!-- Step 4: Complete -->
-<div class="welcome-content">
+<!-- Step 4: Launch -->
+<div class="welcome-content" id="step4-content">
     <div class="welcome-icon">🎉</div>
     <h2 class="welcome-title">Ready to Launch!</h2>
     <p class="welcome-description">
@@ -237,15 +237,103 @@
         </div>
     </div>
     
+    <!-- Launch Button -->
+    <div id="launch-section" style="margin-top: 2rem;">
+        <button onclick="launchFromSetup()" class="btn btn-primary" style="font-size: 1.2rem; padding: 1rem 2rem;">
+            🚀 Launch Coding Bear
+        </button>
+        <p style="margin-top: 1rem; color: #64748b;">
+            Click to create config and start your AI assistant
+        </p>
+    </div>
     
-    <form method="POST" style="margin-top: 2rem;">
-        <div class="button-group" style="justify-content: center;">
-            <button type="submit" class="btn btn-primary" style="font-size: 1.1rem; padding: 1rem 2rem;">
-                🚀 Launch Coding Bear
-            </button>
+    <!-- Launching State -->
+    <div id="launching-section" style="display: none; margin-top: 2rem;">
+        <div class="welcome-icon" style="animation: pulse 1.5s infinite;">🚀</div>
+        <h3 style="color: #6366f1;">Creating Config & Starting Agent...</h3>
+        <p style="color: #64748b;">This may take a few seconds</p>
+    </div>
+    
+    <!-- Success State -->
+    <div id="success-section" style="display: none; margin-top: 2rem;">
+        <div class="welcome-icon">✅</div>
+        <h3 style="color: #22c55e;">Agent Started!</h3>
+        <p id="success-message">Your coding assistant is now running.</p>
+        
+        <div style="margin-top: 1.5rem; padding: 1rem; background: rgba(34,197,94,0.1); border-radius: 0.5rem;">
+            <p style="margin: 0; color: #22c55e; font-size: 0.9rem;">
+                ✓ Config saved<br>
+                ✓ Agent launched<br>
+                💡 Check your terminal for the running agent
+            </p>
         </div>
-    </form>
+        
+        <div style="margin-top: 1.5rem;">
+            <button onclick="window.close()" class="btn btn-secondary">Close Window</button>
+        </div>
+    </div>
+    
+    <!-- Error State -->
+    <div id="error-section" style="display: none; margin-top: 2rem;">
+        <div class="welcome-icon">❌</div>
+        <h3 style="color: #ef4444;">Launch Failed</h3>
+        <p id="error-message">Something went wrong.</p>
+    </div>
 </div>
+
+<script>
+function launchFromSetup() {
+    document.getElementById('launch-section').style.display = 'none';
+    document.getElementById('launching-section').style.display = 'block';
+    
+    // First, submit the form to create config
+    fetch('/setup/4', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/x-www-form-urlencoded'
+        },
+        body: ''
+    })
+    .then(() => {
+        // Then launch the agent
+        return fetch('/launch', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            }
+        });
+    })
+    .then(response => response.json())
+    .then(data => {
+        document.getElementById('launching-section').style.display = 'none';
+        
+        if (data.success) {
+            document.getElementById('success-section').style.display = 'block';
+            document.getElementById('success-message').textContent = data.message;
+        } else {
+            showLaunchError(data.error || 'Unknown error');
+        }
+    })
+    .catch(error => {
+        showLaunchError(error.message);
+    });
+}
+
+function showLaunchError(message) {
+    document.getElementById('launching-section').style.display = 'none';
+    document.getElementById('error-section').style.display = 'block';
+    document.getElementById('error-message').textContent = message;
+}
+</script>
+
+<style>
+@keyframes pulse {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.5; }
+}
+</style>
+
+{% endif %}
 
 {% endif %}
 
