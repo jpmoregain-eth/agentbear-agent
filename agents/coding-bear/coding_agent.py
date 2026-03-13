@@ -10,6 +10,7 @@ import json
 import logging
 import subprocess
 import shutil
+import threading
 from typing import Dict, List, Optional, Any
 from pathlib import Path
 from dataclasses import dataclass, asdict
@@ -33,6 +34,9 @@ logging.basicConfig(
 )
 logger = logging.getLogger(__name__)
 console = Console()
+
+# Global variable for telegram bot thread
+telegram_thread = None
 
 
 @dataclass
@@ -679,6 +683,36 @@ Return the complete updated file."""
             console.print(f"[red]Git pull failed: {e.stderr}[/red]")
 
 
+def start_telegram_bot(config):
+    """Start Telegram bot in background thread if configured"""
+    global telegram_thread
+    
+    if not config.telegram.get('enabled', False):
+        return
+    
+    if not config.telegram.get('bot_token'):
+        console.print("[yellow]⚠ Telegram enabled but no bot token configured[/yellow]")
+        return
+    
+    try:
+        from telegram_bot import CodingBearTelegramBot
+        
+        def run_bot():
+            try:
+                bot = CodingBearTelegramBot()
+                bot.run()
+            except Exception as e:
+                logger.error(f"Telegram bot error: {e}")
+        
+        telegram_thread = threading.Thread(target=run_bot, daemon=True)
+        telegram_thread.start()
+        console.print("[green]✓ Telegram bot started in background[/green]")
+        console.print(f"[blue]💬 Message your bot to interact: https://t.me/{config.telegram.get('bot_username', 'your_bot')}")
+        
+    except Exception as e:
+        console.print(f"[red]✗ Failed to start Telegram bot: {e}[/red]")
+
+
 def main():
     """Main entry point"""
     import argparse
@@ -694,10 +728,20 @@ def main():
     parser.add_argument('--edit', nargs=2, metavar=('FILE', 'CHANGES'), help='Edit file')
     parser.add_argument('--read', help='Read file contents')
     parser.add_argument('--interactive', '-i', action='store_true', help='Interactive mode')
+    parser.add_argument('--no-telegram', action='store_true', help='Skip auto-starting Telegram bot')
     
     args = parser.parse_args()
     
     agent = CodingBearAgent(args.config)
+    
+    # Auto-start Telegram bot if enabled and not disabled via flag
+    if not args.no_telegram:
+        try:
+            from config import Config
+            config = Config(args.config)
+            start_telegram_bot(config)
+        except Exception as e:
+            logger.warning(f"Could not auto-start Telegram: {e}")
     
     if args.review:
         agent.review_code(args.review)
