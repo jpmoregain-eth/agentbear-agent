@@ -724,8 +724,9 @@ def main():
     parser.add_argument('--edit', nargs=2, metavar=('FILE', 'CHANGES'), help='Edit file')
     parser.add_argument('--read', help='Read file contents')
     parser.add_argument('--interactive', '-i', action='store_true', help='Interactive mode')
-    parser.add_argument('--telegram', '-t', action='store_true', help='Run Telegram bot only (blocks)')
-    parser.add_argument('--api', '-a', action='store_true', help='Run HTTP API server (for external tools)')
+    parser.add_argument('--telegram', '-t', action='store_true', help='Run Telegram bot')
+    parser.add_argument('--api', '-a', action='store_true', help='Run HTTP API server')
+    parser.add_argument('--combo', '-c', action='store_true', help='Run both API and Telegram')
     parser.add_argument('--no-telegram', action='store_true', help='Skip auto-starting Telegram bot')
     
     args = parser.parse_args()
@@ -733,7 +734,27 @@ def main():
     # Check if Telegram should auto-start
     telegram_configured = start_telegram_bot(args.config)
     
-    # If --api flag, run HTTP API server
+    # If --combo flag, run both API and Telegram
+    if args.combo or (args.api and args.telegram):
+        import threading
+        from bear_api import CodingBearAPI
+        
+        console.print("[bold green]🐻 Starting Coding Bear in COMBO mode (API + Telegram)[/bold green]\n")
+        
+        # Start API server in a thread
+        api = CodingBearAPI(args.config)
+        api_thread = threading.Thread(target=api.run, daemon=True)
+        api_thread.start()
+        
+        console.print(f"[green]✓ API server started on port {api.port}[/green]")
+        console.print(f"[blue]   Health: http://localhost:{api.port}/health[/blue]")
+        
+        # Start Telegram bot in main thread (it blocks)
+        console.print("[green]✓ Starting Telegram bot...[/green]\n")
+        run_telegram_only(args.config)
+        return
+    
+    # If --api flag only, run HTTP API server
     if args.api:
         from bear_api import CodingBearAPI
         api = CodingBearAPI(args.config)
