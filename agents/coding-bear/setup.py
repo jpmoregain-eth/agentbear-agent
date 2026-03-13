@@ -47,7 +47,7 @@ def setup_model_config() -> Dict[str, Any]:
     if provider == "anthropic":
         model_name = Prompt.ask(
             "Select model",
-            choices=["claude-sonnet-4-6", "claude-opus-4"],
+            choices=["claude-sonnet-4-6", "gpt-4o"],
             default="claude-sonnet-4-6"
         )
         api_key = Prompt.ask(
@@ -64,11 +64,7 @@ def setup_model_config() -> Dict[str, Any]:
             "temperature": 0.3
         }
     else:
-        model_name = Prompt.ask(
-            "Select model",
-            choices=["gpt-4o", "gpt-4-turbo"],
-            default="gpt-4o"
-        )
+        model_name = "gpt-4o"  # Only option for OpenAI
         api_key = Prompt.ask(
             "Enter your OpenAI API key",
             password=True
