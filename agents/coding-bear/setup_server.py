@@ -129,6 +129,25 @@ def launch_agent():
         return jsonify({'error': 'Config not found. Please complete setup first.'}), 400
     
     try:
+        data = request.json or {}
+        launch_mode = data.get('mode', 'auto')  # auto, api, telegram, interactive
+        
+        if launch_mode == 'api':
+            # Launch HTTP API server
+            subprocess.Popen(
+                [sys.executable, 'coding_agent.py', '--api'],
+                cwd=Path(__file__).parent,
+                stdout=subprocess.DEVNULL,
+                stderr=subprocess.DEVNULL,
+                start_new_session=True
+            )
+            return jsonify({
+                'success': True,
+                'message': 'Agent started with HTTP API server',
+                'mode': 'api',
+                'note': 'Check registry for port assignment'
+            })
+        
         # Check if Telegram is enabled
         with open(config_path, 'r') as f:
             config = yaml.safe_load(f) or {}

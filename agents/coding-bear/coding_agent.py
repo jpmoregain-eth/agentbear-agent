@@ -725,12 +725,20 @@ def main():
     parser.add_argument('--read', help='Read file contents')
     parser.add_argument('--interactive', '-i', action='store_true', help='Interactive mode')
     parser.add_argument('--telegram', '-t', action='store_true', help='Run Telegram bot only (blocks)')
+    parser.add_argument('--api', '-a', action='store_true', help='Run HTTP API server (for external tools)')
     parser.add_argument('--no-telegram', action='store_true', help='Skip auto-starting Telegram bot')
     
     args = parser.parse_args()
     
     # Check if Telegram should auto-start
     telegram_configured = start_telegram_bot(args.config)
+    
+    # If --api flag, run HTTP API server
+    if args.api:
+        from bear_api import CodingBearAPI
+        api = CodingBearAPI(args.config)
+        api.run()
+        return
     
     # If --telegram flag or auto-start and not disabled
     if args.telegram or (telegram_configured and not args.no_telegram):
