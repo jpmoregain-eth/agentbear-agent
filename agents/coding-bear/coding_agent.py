@@ -683,14 +683,25 @@ Return the complete updated file."""
             console.print(f"[red]Git pull failed: {e.stderr}[/red]")
 
 
-def start_telegram_bot(config):
+def start_telegram_bot(config_path):
     """Start Telegram bot in background thread if configured"""
     global telegram_thread
     
-    if not config.telegram.get('enabled', False):
+    # Read config directly from YAML
+    try:
+        with open(config_path, 'r') as f:
+            config_data = yaml.safe_load(f) or {}
+    except:
         return
     
-    if not config.telegram.get('bot_token'):
+    telegram_config = config_data.get('telegram', {})
+    telegram_enabled = telegram_config.get('enabled', False)
+    telegram_token = telegram_config.get('bot_token', '')
+    
+    if not telegram_enabled:
+        return
+    
+    if not telegram_token:
         console.print("[yellow]⚠ Telegram enabled but no bot token configured[/yellow]")
         return
     
@@ -707,7 +718,6 @@ def start_telegram_bot(config):
         telegram_thread = threading.Thread(target=run_bot, daemon=True)
         telegram_thread.start()
         console.print("[green]✓ Telegram bot started in background[/green]")
-        console.print(f"[blue]💬 Message your bot to interact: https://t.me/{config.telegram.get('bot_username', 'your_bot')}")
         
     except Exception as e:
         console.print(f"[red]✗ Failed to start Telegram bot: {e}[/red]")
@@ -737,9 +747,7 @@ def main():
     # Auto-start Telegram bot if enabled and not disabled via flag
     if not args.no_telegram:
         try:
-            from config import Config
-            config = Config(args.config)
-            start_telegram_bot(config)
+            start_telegram_bot(args.config)
         except Exception as e:
             logger.warning(f"Could not auto-start Telegram: {e}")
     
