@@ -1,6 +1,7 @@
 """
 Configuration Module
 Handles agent configuration and settings
+Encrypts sensitive fields (API keys) when saving
 """
 
 import os
@@ -9,6 +10,14 @@ import logging
 from typing import Dict, Any, Optional
 from dataclasses import dataclass, asdict
 from pathlib import Path
+
+# Import crypto utils for encryption
+try:
+    from crypto_utils import encrypt_config, decrypt_config
+    CRYPTO_AVAILABLE = True
+except ImportError:
+    CRYPTO_AVAILABLE = False
+    logging.warning("crypto_utils not available, API keys will be stored in plain text")
 
 logger = logging.getLogger(__name__)
 
@@ -80,10 +89,15 @@ class Config:
             self._load_from_env()
     
     def _load_from_file(self):
-        """Load configuration from YAML file"""
+        """Load configuration from YAML file with decryption"""
         try:
             with open(self.config_path, 'r') as f:
                 data = yaml.safe_load(f) or {}
+            
+            # Decrypt sensitive fields if crypto is available
+            if CRYPTO_AVAILABLE:
+                data = decrypt_config(data)
+                logger.debug("Decrypted sensitive config fields")
             
             # Load agent config
             if 'agent' in data:
@@ -179,12 +193,23 @@ class Config:
         }
     
     def save(self, path: str = None):
-        """Save configuration to file"""
+        """Save configuration to file with encryption"""
         save_path = path or self.config_path
         
         try:
+            config_dict = self.to_dict()
+            
+            # Encrypt sensitive fields if crypto is available
+            if CRYPTO_AVAILABLE:
+                config_dict = encrypt_config(config_dict)
+                logger.info("Encrypted sensitive config fields before saving")
+            
             with open(save_path, 'w') as f:
-                yaml.dump(self.to_dict(), f, default_flow_style=False)
+                yaml.dump(config_dict, f, default_flow_style=False)
+            
+            # Set restrictive permissions on config file
+            os.chmod(save_path, 0o600)
+            
             logger.info(f"Configuration saved to {save_path}")
         except Exception as e:
             logger.error(f"Failed to save config: {e}")
