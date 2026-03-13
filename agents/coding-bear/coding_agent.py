@@ -41,7 +41,7 @@ class AgentConfig:
     name: str = "coding-bear"
     version: str = "0.1.0"
     model_provider: str = "anthropic"  # or "openai"
-    model_name: str = "claude-3-5-sonnet-20241022"
+    model_name: str = "claude-sonnet-4-6"  # Updated: claude-sonnet-4-6 or gpt-4o
     api_key: str = ""
     telegram_token: str = ""
     github_token: str = ""

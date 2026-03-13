@@ -10,7 +10,7 @@ agent:
 
 model:
   provider: "anthropic"  # or "openai"
-  name: "claude-3-5-sonnet-20241022"
+  name: "claude-sonnet-4-6"  # Current best: claude-sonnet-4-6, or gpt-4o for OpenAI
   anthropic_api_key: "YOUR_ANTHROPIC_API_KEY_HERE"
   openai_api_key: "YOUR_OPENAI_API_KEY_HERE"
   max_tokens: 4000

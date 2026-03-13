@@ -47,8 +47,8 @@ def setup_model_config() -> Dict[str, Any]:
     if provider == "anthropic":
         model_name = Prompt.ask(
             "Select model",
-            choices=["claude-3-5-sonnet-20241022", "claude-3-opus-20240229"],
-            default="claude-3-5-sonnet-20241022"
+            choices=["claude-sonnet-4-6", "claude-opus-4"],
+            default="claude-sonnet-4-6"
         )
         api_key = Prompt.ask(
             "Enter your Anthropic API key",
