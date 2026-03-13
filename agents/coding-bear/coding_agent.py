@@ -10,7 +10,6 @@ import json
 import logging
 import subprocess
 import shutil
-import threading
 from typing import Dict, List, Optional, Any
 from pathlib import Path
 from dataclasses import dataclass, asdict
@@ -34,9 +33,6 @@ logging.basicConfig(
 )
 logger = logging.getLogger(__name__)
 console = Console()
-
-# Global variable for telegram bot thread
-telegram_thread = None
 
 
 @dataclass
@@ -684,43 +680,33 @@ Return the complete updated file."""
 
 
 def start_telegram_bot(config_path):
-    """Start Telegram bot in background thread if configured"""
-    global telegram_thread
-    
-    # Read config directly from YAML
+    """Check if Telegram should be started and return True if started"""
     try:
         with open(config_path, 'r') as f:
             config_data = yaml.safe_load(f) or {}
     except:
-        return
+        return False
     
     telegram_config = config_data.get('telegram', {})
     telegram_enabled = telegram_config.get('enabled', False)
     telegram_token = telegram_config.get('bot_token', '')
     
-    if not telegram_enabled:
-        return
+    if not telegram_enabled or not telegram_token:
+        return False
     
-    if not telegram_token:
-        console.print("[yellow]⚠ Telegram enabled but no bot token configured[/yellow]")
-        return
-    
+    return True
+
+
+def run_telegram_only(config_path):
+    """Run only Telegram bot (blocks)"""
+    console.print("[green]✓ Starting Telegram bot...[/green]")
     try:
         from telegram_bot import CodingBearTelegramBot
-        
-        def run_bot():
-            try:
-                bot = CodingBearTelegramBot()
-                bot.run()
-            except Exception as e:
-                logger.error(f"Telegram bot error: {e}")
-        
-        telegram_thread = threading.Thread(target=run_bot, daemon=True)
-        telegram_thread.start()
-        console.print("[green]✓ Telegram bot started in background[/green]")
-        
+        bot = CodingBearTelegramBot()
+        bot.run()
     except Exception as e:
         console.print(f"[red]✗ Failed to start Telegram bot: {e}[/red]")
+        logger.error(f"Telegram bot error: {e}")
 
 
 def main():
@@ -738,18 +724,21 @@ def main():
     parser.add_argument('--edit', nargs=2, metavar=('FILE', 'CHANGES'), help='Edit file')
     parser.add_argument('--read', help='Read file contents')
     parser.add_argument('--interactive', '-i', action='store_true', help='Interactive mode')
+    parser.add_argument('--telegram', '-t', action='store_true', help='Run Telegram bot only (blocks)')
     parser.add_argument('--no-telegram', action='store_true', help='Skip auto-starting Telegram bot')
     
     args = parser.parse_args()
     
-    agent = CodingBearAgent(args.config)
+    # Check if Telegram should auto-start
+    telegram_configured = start_telegram_bot(args.config)
     
-    # Auto-start Telegram bot if enabled and not disabled via flag
-    if not args.no_telegram:
-        try:
-            start_telegram_bot(args.config)
-        except Exception as e:
-            logger.warning(f"Could not auto-start Telegram: {e}")
+    # If --telegram flag or auto-start and not disabled
+    if args.telegram or (telegram_configured and not args.no_telegram):
+        run_telegram_only(args.config)
+        return  # Don't go into interactive mode
+    
+    # Otherwise run interactive mode
+    agent = CodingBearAgent(args.config)
     
     if args.review:
         agent.review_code(args.review)
